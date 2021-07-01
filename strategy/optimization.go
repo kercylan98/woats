@@ -16,6 +16,10 @@ func (slf *Optimization) Initialization() {
 }
 
 func (slf *Optimization) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+	// 不处理连堂课
+	if factor.IsGroup() {
+		return true
+	}
 
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
 		studio.FactorPush(factor, slot.Index)

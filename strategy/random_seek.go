@@ -34,6 +34,11 @@ func (slf *RandomSeek) Initialization() {
 }
 
 func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+	// 不处理连堂课
+	if factor.IsGroup() {
+		return true
+	}
+
 	if slf.StopLoss != 0 {
 		if studio.GetProgress()/100.0 >= slf.StopLoss {
 			return false
@@ -69,7 +74,9 @@ seek:
 				if f.IsNoChange() {
 					continue
 				}
-				studio.FactorPop(f, f.GetTimeSlot().Index)
+				if f.GetTimeSlot() != nil {
+					studio.FactorPop(f, f.GetTimeSlot().Index)
+				}
 			}
 		}
 		slf.basic[factor] = basic + 1

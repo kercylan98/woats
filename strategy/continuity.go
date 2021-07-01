@@ -25,6 +25,11 @@ func (slf *Continuity) Initialization() {
 }
 
 func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+	// 不处理连堂课
+	if factor.IsGroup() {
+		return true
+	}
+
 	// 忽略内容检查
 	if utils.IsContainString(slf.ExcludeClass, factor.GetUniqueSign()) ||
 		utils.IsContainString(slf.ExcludeCourse, factor.GetCourse()) {

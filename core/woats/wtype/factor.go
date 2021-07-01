@@ -56,6 +56,10 @@ type Factor interface {
 	SetDisableChange()
 	// SetNoChange 设置是否不应该再调整，可重新设置
 	SetNoChange(noChange bool)
+	// IsGroup 是否是连堂课
+	IsGroup() bool
+	// GetGroup 获取其他连堂对象
+	GetGroup() FactorGroup
 }
 
 // FactorInfo 排课因子数据结构定义
@@ -73,10 +77,28 @@ type FactorInfo struct {
 	Disable     []int                // 禁排课位号码
 	Priority    map[int]float64      // 课位优先级(-1和不设置等同)
 	Slot        []*TimeSlot          // 课位信息
+	Group       FactorGroup          // 连堂课组
 
 	TimeSlot      *TimeSlot // 当前所在课位
 	DisableChange bool      // 该因子放上课位后是否禁止再调整
 	NoChange      bool      // 该因子放上课位后是否不应该再调整（允许在实在困难的情况下被调整）
+}
+
+func (slf *FactorInfo) IsGroup() bool {
+	return slf.Group != nil && len(slf.Group) > 0
+}
+
+func (slf *FactorInfo) GetGroup() FactorGroup {
+	if len(slf.Group) == 0 {
+		return []Factor{slf}
+	}
+	group := make(FactorGroup, 0)
+	for _, factor := range slf.Group {
+		if factor != nil || factor != slf {
+			group = append(group, factor)
+		}
+	}
+	return group
 }
 
 func (slf *FactorInfo) IsDisableChange() bool {

@@ -416,3 +416,23 @@ func (slf *ThreeDimensionalMatrix) GetPrevSlotSameDay(factor wtype.Factor, slot 
 	}
 	return target
 }
+
+// GetGroupSlotIndex 获取连堂课最小最大可放置索引
+func (slf *ThreeDimensionalMatrix) GetGroupSlotIndex(group wtype.FactorGroup, slot int) (min, max int) {
+	min, max = math.MaxInt, math.MinInt
+	for _, factor := range group {
+		for _, timeSlot := range factor.GetSlot() {
+			var s = factor.GetSlotWithIndex(slot)
+			if s.WhatDay == timeSlot.WhatDay {
+				if s.Index > max {
+					max = s.Index
+				}
+				if s.Index < min {
+					min = s.Index
+				}
+			}
+		}
+		break
+	}
+	return min, max - len(group) + 1
+}

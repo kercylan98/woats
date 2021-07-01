@@ -53,7 +53,25 @@ func (slf *BilingualSchoolAffiliatedToEastChinaNormalUniversity) Modification(mo
 
 			var section = make([]int, sectionSum)
 			for i := 0; i < sectionSum; i++ {
-				section[i] = 1
+				switch row.Cells[1].String() {
+				case "DP1 Physics HL",
+					"DP2 Physics HL",
+					"DP1 Physics HL+SL",
+					"DP2 Physics HL+SL",
+					"DP1 Chemistry HL",
+					"DP1 Chemistry HL+SL",
+					"DP2 Chemistry HL",
+					"DP2 Chemistry HL+SL",
+					"DP1 Biology HL+SL",
+					"DP2 Biology HL+SL",
+					"DP1 Biology HL",
+					"DP2 Biology HL",
+					"DP1 Biology":
+					section[i] = 2
+					i++
+				default:
+					section[i] = 1
+				}
 			}
 
 			class := strings.TrimSpace(row.Cells[1].String())

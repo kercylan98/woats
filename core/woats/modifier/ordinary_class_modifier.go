@@ -58,8 +58,9 @@ func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 	var arr []wtype.Factor
 	for _, course := range slf.course {
 		for _, section := range course.section {
+			var group wtype.FactorGroup
 			for i := 0; i < section; i++ {
-				arr = append(arr, &wtype.FactorInfo{
+				f := &wtype.FactorInfo{
 					UniqueSign:  slf.class,
 					Course:      course.course,
 					Teacher:     course.teacher,
@@ -67,12 +68,17 @@ func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 					Students:    slf.students,
 					Place:       course.place,
 					PlaceMode:   course.placeMode,
-					Section:     section,
+					Section:     1,
 					Fixed:       -1,
 					Disable:     course.disable,
 					Priority:    course.priority,
 					Slot:        slf.slot,
-				})
+				}
+				if section > 1 {
+					group = append(group, f)
+					f.Group = group
+				}
+				arr = append(arr, f)
 			}
 		}
 		for _, fixed := range course.fixed {

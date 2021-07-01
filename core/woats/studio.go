@@ -2,6 +2,8 @@ package woats
 
 import (
 	"fmt"
+	"github.com/kercylan98/exception"
+	"github.com/kercylan98/woats/core/woats/define"
 	"github.com/kercylan98/woats/core/woats/wtype"
 	"log"
 	"math/rand"
@@ -44,6 +46,9 @@ type Studio struct {
 // GetDifficult 获取当前排课困难指数
 func (slf *Studio) GetDifficult() float64 {
 	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(slf.linger)/((float64(slf.fgTotal))*1.5)), 64)
+	if value > 1 {
+		return 1
+	}
 	return value
 }
 
@@ -158,6 +163,7 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
 	var replace = make(wtype.FactorGroup, 0)
 	var replaceFinish = make(wtype.FactorGroup, 0)
 
+	count := 0
 	for i := 0; i < len(slf.matrix[factor.GetUniqueSign()][slot]); i++ {
 		f := slf.matrix[factor.GetUniqueSign()][slot][i]
 		if f == factor {
@@ -177,17 +183,63 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
 				}
 			}
 			slf.matrix[factor.GetUniqueSign()][slot] = replace
+			count++
 		} else {
 			replace = append(replace, f)
 		}
 	}
 
 	slf.matrix[factor.GetUniqueSign()][slot] = replace
+	if count > 0 && factor.IsGroup() {
+		for _, f := range factor.GetGroup() {
+			if f.GetTimeSlot() != nil {
+				slf.FactorPop(f, f.GetTimeSlot().Index)
+			}
+		}
+	}
+}
 
+// FactorGroupPush 放置连堂课
+func (slf *Studio) FactorGroupPush(factor wtype.Factor, slot int) exception.Exception {
+	if !factor.IsGroup() {
+		return define.FactorGroupPushException.Hit().
+			Supplement("factor", "not is a group").
+			Supplement("class", factor.GetUniqueSign()).
+			Supplement("course", factor.GetCourse())
+	}
+
+	min, max := slf.matrix.GetGroupSlotIndex(factor.GetGroup(), slot)
+	if slot >= min || slot <= max {
+		var push = func(factor wtype.Factor, slot int) {
+			log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Posh!")
+			slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
+			for _, timeSlot := range factor.GetSlot() {
+				if timeSlot.Index == slot {
+					factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+					break
+				}
+			}
+		}
+		push(factor, slot)
+		slot++
+		for _, f := range factor.GetGroup() {
+			push(f, slot)
+			slot++
+		}
+		return nil
+	}
+	return define.FactorGroupPushException.Hit().
+		Supplement("err", fmt.Sprintf("slot min and max is: %d ~ %d", min, max)).
+		Supplement("slot", slot).
+		Supplement("class", factor.GetUniqueSign()).
+		Supplement("course", factor.GetCourse())
 }
 
 // FactorPush 将特定因子放置到特定课位
 func (slf *Studio) FactorPush(factor wtype.Factor, slot int) {
+	if factor.IsGroup() {
+		panic("please use FactorGroupPush!")
+	}
 	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Posh!")
 
 	slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
@@ -235,17 +287,47 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 			}
 			realLoopCount++
 			log.Println("Loop count added, now real loop count is:", realLoopCount)
-		} else if len(slf.finish) == slf.fgTotal {
+		} else if len(slf.finish) == slf.fgTotal || len(slf.process) == 0 {
 			slf.log()
 			return
 		} else {
 			factor := slf.process[0]
 			if success := handle(factor, slf); success {
-				slf.finish = append(slf.finish, factor)
+				if !factor.IsGroup() {
+					slf.finish = append(slf.finish, factor)
+				} else {
+					for _, f := range factor.GetGroup() {
+						slf.finish = append(slf.finish, f)
+					}
+				}
 			} else {
-				slf.todo = append(slf.todo, factor)
+				if !factor.IsGroup() {
+					slf.todo = append(slf.todo, factor)
+				} else {
+					for _, f := range factor.GetGroup() {
+						slf.todo = append(slf.todo, f)
+					}
+				}
 			}
-			slf.process = slf.process[1:]
+			if !factor.IsGroup() {
+				slf.process = slf.process[1:]
+			} else {
+				slf.process = slf.process[1:]
+				var replace = make(wtype.FactorGroup, 0)
+				for _, process := range slf.process {
+					add := true
+					for _, f := range factor.GetGroup() {
+						if process == f {
+							add = false
+							break
+						}
+					}
+					if add {
+						replace = append(replace, process)
+					}
+				}
+				slf.process = replace
+			}
 			slf.log(factor)
 
 			// 徘徊检测

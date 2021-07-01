@@ -52,8 +52,9 @@ type ElectiveClassModifier struct {
 func (slf *ElectiveClassModifier) ToFactor() []wtype.Factor {
 	var arr []wtype.Factor
 	for _, section := range slf.section {
+		var group wtype.FactorGroup
 		for i := 0; i < section; i++ {
-			arr = append(arr, &wtype.FactorInfo{
+			f := &wtype.FactorInfo{
 				UniqueSign:  slf.course,
 				Course:      slf.course,
 				Teacher:     slf.teachers,
@@ -61,12 +62,17 @@ func (slf *ElectiveClassModifier) ToFactor() []wtype.Factor {
 				Students:    slf.students,
 				Place:       slf.place,
 				PlaceMode:   slf.placeMode,
-				Section:     section,
+				Section:     1,
 				Fixed:       -1,
 				Disable:     slf.disable,
 				Priority:    slf.priority,
 				Slot:        slf.slot,
-			})
+			}
+			if section > 1 {
+				group = append(group, f)
+				f.Group = group
+			}
+			arr = append(arr, f)
 		}
 	}
 	for _, fixed := range slf.fixed {
