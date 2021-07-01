@@ -271,6 +271,9 @@ func (slf *Studio) GetMatrix() ThreeDimensionalMatrix {
 
 // GetProgress 获取当前进度
 func (slf *Studio) GetProgress() float64 {
+	if len(slf.finish) == 0 {
+		return 0
+	}
 	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(len(slf.finish))/float64(slf.fgTotal)*100.0), 64)
 	return value
 }
