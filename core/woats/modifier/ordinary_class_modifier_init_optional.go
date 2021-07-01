@@ -1,6 +1,6 @@
 package modifier
 
-import "github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+import "github.com/kercylan98/woats/core/woats/wtype"
 
 func NewOrdinaryCLassModifierInitOptional(modifier *OrdinaryClassModifier) *OrdinaryCLassModifierInitOptional {
 	return &OrdinaryCLassModifierInitOptional{
@@ -10,7 +10,7 @@ func NewOrdinaryCLassModifierInitOptional(modifier *OrdinaryClassModifier) *Ordi
 
 // OrdinaryCLassModifierInitOptional 行政班级细节修饰器
 type OrdinaryCLassModifierInitOptional struct {
-	modifier 	*OrdinaryClassModifier
+	modifier *OrdinaryClassModifier
 }
 
 func (slf *OrdinaryCLassModifierInitOptional) Ok() *OrdinaryClassModifier {

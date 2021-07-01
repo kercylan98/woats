@@ -2,7 +2,7 @@ package wtype
 
 import (
 	"fmt"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/utils"
+	"github.com/kercylan98/woats/core/woats/utils"
 )
 
 // 代表一周七天，从周一开始
@@ -19,7 +19,7 @@ const (
 // NewTimeSlot 创建一个基于时间的课位
 func NewTimeSlot(index int, whatDay int, startHour, startMinute, endHour, endMinute int) *TimeSlot {
 	ts := &TimeSlot{
-		Index: index,
+		Index:   index,
 		WhatDay: whatDay,
 		Start:   utils.TimeToNumber(startHour, startMinute),
 		End:     utils.TimeToNumber(endHour, endMinute),
@@ -30,11 +30,11 @@ func NewTimeSlot(index int, whatDay int, startHour, startMinute, endHour, endMin
 
 // TimeSlot 时间段数据结构
 type TimeSlot struct {
-	UniqueSign 		string
-	Index 			int 	// 课位号
-	WhatDay 		int		// 第几天
-	Start 			float64 // 开始时间
-	End				float64 // 结束时间
+	UniqueSign string
+	Index      int     // 课位号
+	WhatDay    int     // 第几天
+	Start      float64 // 开始时间
+	End        float64 // 结束时间
 }
 
 // GreaterThan 比较是否大于另一个时间课位（如 8:00～8:40 比 9:00~9:10 小）
@@ -63,9 +63,9 @@ func (slf *TimeSlot) IsCrossed(timeSlot *TimeSlot) bool {
 		slf.end
 		==================================
 		*/
-		if  (slf.Start < timeSlot.Start && slf.End > timeSlot.Start) 	||
-			(slf.Start > timeSlot.Start && slf.Start < timeSlot.End)	||
-			(slf.UniqueSign == timeSlot.UniqueSign) 					{
+		if (slf.Start < timeSlot.Start && slf.End > timeSlot.Start) ||
+			(slf.Start > timeSlot.Start && slf.Start < timeSlot.End) ||
+			(slf.UniqueSign == timeSlot.UniqueSign) {
 			return true
 		}
 	}

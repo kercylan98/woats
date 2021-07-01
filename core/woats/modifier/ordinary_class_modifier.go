@@ -2,19 +2,19 @@ package modifier
 
 import (
 	"github.com/kercylan98/exception"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/define"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/utils"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/define"
+	"github.com/kercylan98/woats/core/woats/utils"
+	"github.com/kercylan98/woats/core/woats/wtype"
 )
 
 func NewOrdinaryCLassModifier(class string, stage, level int, slot []*wtype.TimeSlot) *OrdinaryClassModifier {
 	return &OrdinaryClassModifier{
-		class:  class,
-		stage:  stage,
-		level:  level,
-		leader: []string{},
-		course: map[string]*OrdinaryClassModifierCourse{},
-		slot:   slot,
+		class:    class,
+		stage:    stage,
+		level:    level,
+		leader:   []string{},
+		course:   map[string]*OrdinaryClassModifierCourse{},
+		slot:     slot,
 		students: []*wtype.Student{},
 	}
 }
@@ -32,13 +32,13 @@ const (
 
 // OrdinaryClassModifier 行政班级细节修饰器
 type OrdinaryClassModifier struct {
-	class  string                                  // 班级
-	stage  int                                     // 学段
-	level  int                                     // 年级
-	leader []string                                // 班主任
-	course map[string]*OrdinaryClassModifierCourse // 课程信息
-	slot   []*wtype.TimeSlot                       // 上课课位
-	students    []*wtype.Student           		   // 行政班学生
+	class    string                                  // 班级
+	stage    int                                     // 学段
+	level    int                                     // 年级
+	leader   []string                                // 班主任
+	course   map[string]*OrdinaryClassModifierCourse // 课程信息
+	slot     []*wtype.TimeSlot                       // 上课课位
+	students []*wtype.Student                        // 行政班学生
 }
 
 // OrdinaryClassModifierCourse 行政班修饰器课程详情数据结构
@@ -64,14 +64,14 @@ func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 					Course:      course.course,
 					Teacher:     course.teacher,
 					TeacherMode: course.teacherMode,
-					Students: 	 slf.students,
+					Students:    slf.students,
 					Place:       course.place,
 					PlaceMode:   course.placeMode,
 					Section:     section,
 					Fixed:       -1,
 					Disable:     course.disable,
 					Priority:    course.priority,
-					Slot:  		 slf.slot,
+					Slot:        slf.slot,
 				})
 			}
 		}
@@ -81,14 +81,14 @@ func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 				Course:      course.course,
 				Teacher:     course.teacher,
 				TeacherMode: course.teacherMode,
-				Students: 	 slf.students,
+				Students:    slf.students,
 				Place:       course.place,
 				PlaceMode:   course.placeMode,
 				Section:     1,
 				Fixed:       fixed,
 				Disable:     course.disable,
 				Priority:    course.priority,
-				Slot:  		 slf.slot,
+				Slot:        slf.slot,
 			})
 		}
 	}
@@ -118,7 +118,6 @@ func (slf *OrdinaryClassModifier) DataVerification() exception.Exception {
 
 	return nil
 }
-
 
 // AddLeader 添加班主任
 func (slf *OrdinaryClassModifier) AddLeader(uniqueSign ...string) *OrdinaryClassModifier {

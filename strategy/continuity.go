@@ -1,9 +1,9 @@
 package strategy
 
 import (
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/utils"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats"
+	"github.com/kercylan98/woats/core/woats/utils"
+	"github.com/kercylan98/woats/core/woats/wtype"
 )
 
 // Continuity 连续性排课策略(需要确保后续存在其他策略，否则可能导致跳过课程)
@@ -11,13 +11,13 @@ import (
 // 该策略用于满足非强制性的连排要求，如尽量三节连排等
 // 默认均为0表示无效
 type Continuity struct {
-	Optimum int	// 最佳连排数
-	Min 	int // 最小尽量满足连排数
-	Max 	int // 最大能接受的连排数
-	ExcludeClass []string	// 忽略班级
-	ExcludeCourse []string	// 忽略课程
-	ExcludeTeacher []string	// 忽略教师
-	ExcludePlace []string	// 忽略场地
+	Optimum        int      // 最佳连排数
+	Min            int      // 最小尽量满足连排数
+	Max            int      // 最大能接受的连排数
+	ExcludeClass   []string // 忽略班级
+	ExcludeCourse  []string // 忽略课程
+	ExcludeTeacher []string // 忽略教师
+	ExcludePlace   []string // 忽略场地
 }
 
 func (slf *Continuity) Initialization() {
@@ -47,12 +47,12 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 	// 当未预先放置任何该因子关联课程时，交由下一个策略处理
 	if slots = studio.GetMatrix().GetPlaceSlotWithCourse(factor); len(slots) == 0 {
 		return true
-	}else {
+	} else {
 		for _, slot := range slots {
 			mapper[slot] = factor.GetSlotWithSameDay(slot)
 		}
 	}
-	
+
 	// 排序后的索引
 	var slotIndex = make([]int, len(slots))
 	for i, slot := range slots {
@@ -68,10 +68,10 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 		for _, timeSlot := range timeSlots {
 			if utils.IsContainInt(slotIndex, timeSlot.Index) || slot.Index != timeSlot.Index && continuousQuantity < slf.Max {
 				continuousQuantity++
-			}else if !studio.GetMatrix().IsConflict(factor, timeSlot.Index) && continuousQuantity < slf.Max {
+			} else if !studio.GetMatrix().IsConflict(factor, timeSlot.Index) && continuousQuantity < slf.Max {
 				continuousQuantity++
 				hit = append(hit, timeSlot.Index)
-			}else {
+			} else {
 				if continuousQuantity > slf.Min && continuousQuantity <= slf.Max {
 					continuousQuantityMapper[continuousQuantity] = hit
 					continuousQuantity = 0
@@ -100,4 +100,3 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 
 	return true
 }
-

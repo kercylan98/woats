@@ -2,15 +2,15 @@ package woats
 
 import (
 	"github.com/kercylan98/exception"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/wtype"
 	"sync"
 )
 
 // New 根据指定的设计器和策略进行排课
 func New(designer Designer, rotationMax int, strategy ...Strategy) *Woats {
 	woats := &Woats{
-		designer: designer,
-		strategy: strategy,
+		designer:         designer,
+		strategy:         strategy,
 		strategyInitLock: map[Strategy]*sync.Once{},
 
 		rotationMax: rotationMax,
@@ -26,7 +26,7 @@ type Woats struct {
 	strategy         []Strategy              // 采用的排课策略
 	strategyInitLock map[Strategy]*sync.Once // 排课策略初始化锁
 
-	rotationMax 	 int 					 // 流入Studio轮转次数上限的配置
+	rotationMax int // 流入Studio轮转次数上限的配置
 }
 
 // Run 运行排课
@@ -131,25 +131,3 @@ func (slf *Woats) handleNormal(factors wtype.FactorGroup, studio *Studio) {
 	})
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -2,12 +2,11 @@ package designer
 
 import (
 	"github.com/kercylan98/exception"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats"
+	"github.com/kercylan98/woats/core/woats/wtype"
 )
 
 type Test struct {
-
 }
 
 func (slf *Test) Modification(modifier *woats.ModifierFactory) exception.Exception {
@@ -63,16 +62,16 @@ func (slf *Test) Modification(modifier *woats.ModifierFactory) exception.Excepti
 		AddStudent("小红", "小明", "小狼").Ok().
 		AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(5, 2, 3, 28).SetDisable(9).Ok().
 		AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
-	AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-	AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+		AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
+		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
 
 	modifier.OrdinaryClass("小学一年级2班", 1, 1, tss).
 		AddLeader("李鸣宇").
 		AddStudent("小王", "小学生", "小东西").Ok().
 		//AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(4).SetDisable(9).Ok().
 		AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
-	AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-	AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+		AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
+		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
 
 	modifier.OrdinaryClass("小学二年级1班", 1, 2, tss).
 		AddLeader("张涛").
@@ -90,9 +89,9 @@ func (slf *Test) Modification(modifier *woats.ModifierFactory) exception.Excepti
 		AddCourse("英语", "汪欣").Section(1, 1, 1, 1, 1, 1, 1).Ok().
 		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
 
-	modifier.ElectiveClass("绘画精进", []int{1, 1, 1, 1}, tss).//AddFixed(1).
-		AddStudent("小王", "小学生", "小东西").Ok().
-		AddTeacher("王宇").Ok()
+	modifier.ElectiveClass("绘画精进", []int{1, 1, 1, 1}, tss). //AddFixed(1).
+								AddStudent("小王", "小学生", "小东西").Ok().
+								AddTeacher("王宇").Ok()
 
 	return nil
 }

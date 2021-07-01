@@ -1,18 +1,18 @@
 package woats
 
 import (
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/wtype"
 	"sort"
 )
 
 type DataViewRelation struct {
-	slots 				[]*wtype.TimeSlot
-	slotFactorGroupR 	map[int]wtype.FactorGroup
+	slots            []*wtype.TimeSlot
+	slotFactorGroupR map[int]wtype.FactorGroup
 }
 
 func newDataViewRelation(s []*wtype.TimeSlot, m map[int]wtype.FactorGroup) *DataViewRelation {
 	dvr := &DataViewRelation{
-		slots: s,
+		slots:            s,
 		slotFactorGroupR: m,
 	}
 	sort.Slice(dvr.slots, func(i, j int) bool {

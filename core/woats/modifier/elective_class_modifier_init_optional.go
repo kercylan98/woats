@@ -1,13 +1,13 @@
 package modifier
 
-import "github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+import "github.com/kercylan98/woats/core/woats/wtype"
 
 func NewElectiveClassModifierInitOptional(modifier *ElectiveClassModifier) *ElectiveClassModifierInitOptional {
 	return &ElectiveClassModifierInitOptional{modifier: modifier}
 }
 
 type ElectiveClassModifierInitOptional struct {
-	modifier 			*ElectiveClassModifier
+	modifier *ElectiveClassModifier
 }
 
 // Ok 完成可选项

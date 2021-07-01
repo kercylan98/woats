@@ -1,8 +1,8 @@
 package strategy
 
 import (
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats"
+	"github.com/kercylan98/woats/core/woats/wtype"
 	"math"
 )
 
@@ -13,11 +13,11 @@ import (
 // 在设置止损点的时候，当总体进度大于止损点则停止继续寻求
 // TODO: 存在很大的优化空间，该策略赋予了更大随机的可能性
 type RandomSeek struct {
-	StopLoss float64				// 止损点(0~1)，当值为0的时候不生效
+	StopLoss float64 // 止损点(0~1)，当值为0的时候不生效
 
-	basic map[wtype.Factor]int 		// 寻求基数
-	basicMax int 					// 寻求基数上限
-	top float64							// 最高分
+	basic    map[wtype.Factor]int // 寻求基数
+	basicMax int                  // 寻求基数上限
+	top      float64              // 最高分
 }
 
 func (slf *RandomSeek) Initialization() {
@@ -35,11 +35,14 @@ func (slf *RandomSeek) Initialization() {
 
 func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool {
 	if slf.StopLoss != 0 {
-		if studio.GetProgress() / 100.0 >= slf.StopLoss {
+		if studio.GetProgress()/100.0 >= slf.StopLoss {
 			return false
 		}
 	}
-	seek :{studio.LockRotation()}
+seek:
+	{
+		studio.LockRotation()
+	}
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
 		studio.FactorPush(factor, slot.Index)
 		top := studio.GetProgress()
@@ -66,7 +69,7 @@ func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 			}
 		}
 		slf.basic[factor] = basic + 1
-	}else {
+	} else {
 		// 寻求不到冲突还无法排课的情况不可能出现，应该直接跳过该策略
 		panic("error code logic")
 	}

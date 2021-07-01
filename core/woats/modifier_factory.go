@@ -1,12 +1,12 @@
 package woats
 
 import (
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/modifier"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/modifier"
+	"github.com/kercylan98/woats/core/woats/wtype"
 )
 
 type ModifierFactory struct {
-	product 		map[string]Modifier
+	product map[string]Modifier
 }
 
 // OrdinaryClass 采用特定修饰定义一个行政班

@@ -2,7 +2,7 @@
 
 基于班级时间段的选修行政班排课demo，采用多级策略的方式进行设计，支持自定义数据来源及排课算法
 
-###Out:
+### Out:
 ```
     2021/07/01 16:30:52 Loop count added, now real loop count is: 1
     2021/07/01 16:30:52 NaN% Process:   0 Todo:   0 Unfinish:   0 Finish:   0 Total:   0

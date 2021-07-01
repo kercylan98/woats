@@ -2,27 +2,27 @@ package woats
 
 import (
 	"fmt"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/wtype"
 	"log"
 	"strconv"
 )
 
 func newStudio(group wtype.FactorGroup, matrix ThreeDimensionalMatrix, rotationMax int) *Studio {
 	return &Studio{
-		matrix: matrix,
-		process: []wtype.Factor{},
-		todo:    group,
-		finish:  []wtype.Factor{},
-		fgTotal: len(group),
-		snapshot: map[string]*Studio{},
+		matrix:      matrix,
+		process:     []wtype.Factor{},
+		todo:        group,
+		finish:      []wtype.Factor{},
+		fgTotal:     len(group),
+		snapshot:    map[string]*Studio{},
 		rotationMax: rotationMax,
-		rotation: 0,
+		rotation:    0,
 	}
 }
 
 // Studio 工作空间
 type Studio struct {
-	matrix  ThreeDimensionalMatrix	// 三维课表矩阵(引用)
+	matrix ThreeDimensionalMatrix // 三维课表矩阵(引用)
 
 	process wtype.FactorGroup // 处理中
 	todo    wtype.FactorGroup // 待处理
@@ -34,7 +34,7 @@ type Studio struct {
 	lockRotation bool // 为true时rotation将不生效
 	logout       bool // 是否开启日志输出
 
-	snapshot map[string]*Studio	// 快照
+	snapshot map[string]*Studio // 快照
 }
 
 // 追加排课因子
@@ -58,7 +58,6 @@ func (slf *Studio) UnLockRotation() {
 func (slf *Studio) GetFactorTotal() int {
 	return slf.fgTotal
 }
-
 
 // GetProcess 获取正在处理的数量
 func (slf *Studio) GetProcess() int {
@@ -96,15 +95,15 @@ func (slf *Studio) RecoverySnapshot(name string) bool {
 // clone 克隆
 func (slf *Studio) clone() *Studio {
 	return &Studio{
-		matrix:   slf.matrix.Clone(),
-		process:  slf.process.Clone(),
-		todo:     slf.todo.Clone(),
-		finish:   slf.finish.Clone(),
-		fgTotal:  slf.fgTotal,
-		rotationMax: slf.rotationMax,
-		rotation: slf.rotation,
+		matrix:       slf.matrix.Clone(),
+		process:      slf.process.Clone(),
+		todo:         slf.todo.Clone(),
+		finish:       slf.finish.Clone(),
+		fgTotal:      slf.fgTotal,
+		rotationMax:  slf.rotationMax,
+		rotation:     slf.rotation,
 		lockRotation: slf.lockRotation,
-		logout: slf.logout,
+		logout:       slf.logout,
 	}
 }
 
@@ -154,7 +153,7 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
 				}
 			}
 			slf.matrix[factor.GetUniqueSign()][slot] = replace
-		}else {
+		} else {
 			replace = append(replace, f)
 		}
 	}
@@ -202,14 +201,14 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 			}
 			realLoopCount++
 			log.Println("Loop count added, now real loop count is:", realLoopCount)
-		}else if len(slf.finish) == slf.fgTotal {
+		} else if len(slf.finish) == slf.fgTotal {
 			slf.log()
 			return
-		}else {
+		} else {
 			factor := slf.process[0]
 			if success := handle(factor, slf); success {
 				slf.finish = append(slf.finish, factor)
-			}else {
+			} else {
 				slf.todo = append(slf.todo, factor)
 			}
 			slf.process = slf.process[1:]
@@ -228,7 +227,7 @@ func (slf *Studio) GetMatrix() ThreeDimensionalMatrix {
 
 // GetProgress 获取当前进度
 func (slf *Studio) GetProgress() float64 {
-	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(len(slf.finish)) / float64(slf.fgTotal) * 100.0), 64)
+	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(len(slf.finish))/float64(slf.fgTotal)*100.0), 64)
 	return value
 }
 
@@ -241,10 +240,10 @@ func (slf *Studio) log(factor ...wtype.Factor) {
 		var f = factor[0]
 		log.Println(fmt.Sprintf("%.2f%s [%s] %s Process:%4d Todo:%4d Unfinish:%4d Finish:%4d Total:%4d",
 			slf.GetProgress(), "%", f.GetUniqueSign(), f.GetCourse(),
-			len(slf.process), len(slf.todo), len(slf.todo) + len(slf.process), len(slf.finish), slf.fgTotal))
-	}else {
+			len(slf.process), len(slf.todo), len(slf.todo)+len(slf.process), len(slf.finish), slf.fgTotal))
+	} else {
 		log.Println(fmt.Sprintf("%.2f%s Process:%4d Todo:%4d Unfinish:%4d Finish:%4d Total:%4d",
 			slf.GetProgress(), "%",
-			len(slf.process), len(slf.todo), len(slf.todo) + len(slf.process), len(slf.finish), slf.fgTotal))
+			len(slf.process), len(slf.todo), len(slf.todo)+len(slf.process), len(slf.finish), slf.fgTotal))
 	}
 }

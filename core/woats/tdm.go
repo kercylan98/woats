@@ -2,14 +2,14 @@ package woats
 
 import (
 	"github.com/kercylan98/exception"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/define"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/utils"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/define"
+	"github.com/kercylan98/woats/core/woats/utils"
+	"github.com/kercylan98/woats/core/woats/wtype"
 	"math"
 )
 
 // ThreeDimensionalMatrix 三维矩阵课表模型数据结构
-type ThreeDimensionalMatrix map[string /*class*/]map[int /*slot*/]wtype.FactorGroup
+type ThreeDimensionalMatrix map[string] /*class*/ map[int] /*slot*/ wtype.FactorGroup
 
 func newTDM(factors wtype.FactorGroup) ThreeDimensionalMatrix {
 	var tdm ThreeDimensionalMatrix = map[string]map[int]wtype.FactorGroup{}
@@ -119,13 +119,12 @@ func (slf ThreeDimensionalMatrix) GetSlotExcludeClass(class ...string) []*wtype.
 		for _, slot := range factor.GetSlot() {
 			result = append(result, &wtype.FactorTimeSlot{
 				Factor: factor,
-				Slot:  slot,
+				Slot:   slot,
 			})
 		}
 	}
 	return result
 }
-
 
 // GetSlots 获取特定班级的所有课位及存放的课程
 func (slf ThreeDimensionalMatrix) GetSlots(class string) map[int]wtype.FactorGroup {
@@ -217,8 +216,6 @@ func (slf ThreeDimensionalMatrix) GetConflictFactor(factor wtype.Factor, slot in
 			}
 		}
 	}
-
-
 
 	return conflict
 }

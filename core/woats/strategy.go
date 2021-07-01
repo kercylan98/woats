@@ -2,7 +2,7 @@ package woats
 
 import (
 	"github.com/kercylan98/exception"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/wtype"
 )
 
 // RollBack 回滚快照，count表示回滚快照数量

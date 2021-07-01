@@ -2,7 +2,7 @@ package woats
 
 import (
 	"fmt"
-	"github.com/kercylan98/work-out-a-teaching-schedule/core/woats/wtype"
+	"github.com/kercylan98/woats/core/woats/wtype"
 	"github.com/tealeg/xlsx"
 )
 
@@ -25,7 +25,6 @@ func (slf *DataView) GetClassDayView(class string, day int) *DataViewRelation {
 	return newDataViewRelation(slots, slotFactorGroupR)
 }
 
-
 // GetClassView 获取特定班级周视图
 func (slf *DataView) GetClassView(class string) []*DataViewRelation {
 	var dvrs []*DataViewRelation
@@ -46,7 +45,7 @@ func (slf *DataView) GetView() map[int]map[string]wtype.FactorGroup {
 				if _, exist := time[slot.WhatDay]; !exist {
 					time[slot.WhatDay] = map[string]wtype.FactorGroup{}
 					time[slot.WhatDay][slot.UniqueSign] = make(wtype.FactorGroup, 0)
-				}else {
+				} else {
 					if _, exist = time[slot.WhatDay][slot.UniqueSign]; !exist {
 						time[slot.WhatDay][slot.UniqueSign] = make(wtype.FactorGroup, 0)
 					}
@@ -101,15 +100,3 @@ func (slf *DataView) CreateClassViewExcel(class string, path string) error {
 
 	return excel.Save(path)
 }
-
-
-
-
-
-
-
-
-
-
-
-

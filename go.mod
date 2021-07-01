@@ -1,4 +1,4 @@
-module github.com/kercylan98/work-out-a-teaching-schedule
+module github.com/kercylan98/woats
 
 go 1.17
 
