@@ -8,15 +8,14 @@ import (
 
 func main() {
 	w := woats.New(new(designer.BilingualSchoolAffiliatedToEastChinaNormalUniversity), 10,
-
-		&strategy.RandomSeek{
-			StopLoss: 0.96,
-		},
-		new(strategy.Optimization),
 		&strategy.Continuity{
 			Optimum: 3,
 			Min:     2,
 			Max:     4,
+		},
+		new(strategy.Optimization),
+		&strategy.RandomSeek{
+			StopLoss: 0.96,
 		},
 	)
 

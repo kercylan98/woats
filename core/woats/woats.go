@@ -107,6 +107,7 @@ func (slf *Woats) handleFixed(factors wtype.FactorGroup, studio *Studio) {
 	studio.addFactorGroup(factors)
 	studio.Run(func(factor wtype.Factor, studio *Studio) bool {
 		studio.FactorPush(factor, factor.GetFixed())
+		factor.SetDisableChange()
 		return true
 	})
 }

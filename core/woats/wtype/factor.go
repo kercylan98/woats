@@ -48,9 +48,9 @@ type Factor interface {
 	GetTimeSlot() *TimeSlot
 	// GetSlotWithSameDay 获取相同天的课位
 	GetSlotWithSameDay(slot *TimeSlot) []*TimeSlot
-	// IsDisableChange 是否禁止调整
+	// IsDisableChange 是否禁止调整(使用Pop和Move将无效)
 	IsDisableChange() bool
-	// IsNoChange 是否不应该调整
+	// IsNoChange 是否不应该调整(应该在策略中进行考虑)
 	IsNoChange() bool
 	// SetDisableChange 设置禁止调整，设置后无法取消
 	SetDisableChange()
@@ -60,9 +60,9 @@ type Factor interface {
 
 // FactorInfo 排课因子数据结构定义
 type FactorInfo struct {
-	NRCSign 	string				 // 确保不重复的组合标识
+	NRCSign     string               // 确保不重复的组合标识
 	UniqueSign  string               // 唯一标识(选修班或行政班标识)
-	Course 		string				 // 课程标识
+	Course      string               // 课程标识
 	Teacher     []string             // 一组任课教师
 	TeacherMode int                  // 教师选择模式
 	Students    []*Student           // 一组学生
@@ -72,7 +72,7 @@ type FactorInfo struct {
 	Fixed       int                  // 固定课位号码(-1不考虑)，永远占1课时
 	Disable     []int                // 禁排课位号码
 	Priority    map[int]float64      // 课位优先级(-1和不设置等同)
-	Slot 		[]*TimeSlot			 // 课位信息
+	Slot        []*TimeSlot          // 课位信息
 
 	TimeSlot      *TimeSlot // 当前所在课位
 	DisableChange bool      // 该因子放上课位后是否禁止再调整
@@ -221,5 +221,3 @@ func (slf *FactorInfo) GetDisable() []int {
 func (slf *FactorInfo) GetPriority() map[int]float64 {
 	return slf.Priority
 }
-
-

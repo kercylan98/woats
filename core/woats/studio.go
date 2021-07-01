@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/kercylan98/woats/core/woats/wtype"
 	"log"
+	"math/rand"
 	"strconv"
 )
 
@@ -35,6 +36,15 @@ type Studio struct {
 	logout       bool // 是否开启日志输出
 
 	snapshot map[string]*Studio // 快照
+
+	linger    int // 徘徊次数，当剩余数量减少又增加的时候记为一次徘徊
+	remainder int // 上一次剩余数量计数
+}
+
+// GetDifficult 获取当前排课困难指数
+func (slf *Studio) GetDifficult() float64 {
+	value, _ := strconv.ParseFloat(fmt.Sprintf("%.2f", float64(slf.linger)/((float64(slf.fgTotal))*1.5)), 64)
+	return value
 }
 
 // 追加排课因子
@@ -86,6 +96,8 @@ func (slf *Studio) RecoverySnapshot(name string) bool {
 		slf.rotation = snapshot.rotation
 		slf.lockRotation = snapshot.lockRotation
 		slf.logout = snapshot.logout
+		slf.linger = snapshot.linger
+		slf.remainder = snapshot.remainder
 		delete(slf.snapshot, name)
 		return true
 	}
@@ -104,6 +116,8 @@ func (slf *Studio) clone() *Studio {
 		rotation:     slf.rotation,
 		lockRotation: slf.lockRotation,
 		logout:       slf.logout,
+		linger:       slf.linger,
+		remainder:    slf.remainder,
 	}
 }
 
@@ -129,6 +143,16 @@ func (slf *Studio) DeleteSnapshot(match func(name string) bool) {
 
 // FactorPop 将特定因子从特定课位中弹出到代办中的前面
 func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
+	if factor.IsDisableChange() {
+		return
+	}
+	if factor.IsNoChange() {
+		// 命中0～100000中产生的少部分随机数，则允许调整
+		if !(rand.Intn(1000001) <= int(1000000-(slf.GetDifficult()*1000000))) {
+			return
+		}
+		factor.SetNoChange(false)
+	}
 	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Pop!")
 
 	var replace = make(wtype.FactorGroup, 0)
@@ -178,6 +202,16 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) {
 
 // FactorMove 将特定因子从一个课位移动到另一个课位(不考虑冲突)
 func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) {
+	if factor.IsDisableChange() {
+		return
+	}
+	if factor.IsNoChange() {
+		// 命中0～100000中产生的少部分随机数，则允许调整
+		if !(rand.Intn(1000001) <= int(1000000-(slf.GetDifficult()*1000000))) {
+			return
+		}
+		factor.SetNoChange(false)
+	}
 	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "=>", targetSlot)
 	slf.FactorPop(factor, slot)
 	slf.FactorPush(factor, targetSlot)
@@ -213,6 +247,16 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 			}
 			slf.process = slf.process[1:]
 			slf.log(factor)
+
+			// 徘徊检测
+			var finishCount = len(slf.finish)
+			if finishCount <= slf.remainder {
+				slf.linger++
+				log.Println("The process is wandering, Linger:", slf.linger, "Difficult:", slf.GetDifficult())
+			}
+			slf.remainder = len(slf.finish)
+
+			// 死循环怀疑检测
 			if realLoopCount > 100 {
 				log.Println("There may be an infinite loop that is not unlocked!!!!!!")
 			}

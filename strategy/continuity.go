@@ -95,6 +95,7 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 
 	if len(target) > 0 {
 		studio.FactorPush(factor, target[0])
+		factor.SetNoChange(true)
 		return false
 	}
 

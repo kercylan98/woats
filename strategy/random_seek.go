@@ -65,6 +65,10 @@ seek:
 	if conflict := studio.GetMatrix().GetConflictFactorAll(factor, basic); len(conflict) != 0 {
 		for _, fg := range conflict {
 			for _, f := range fg {
+				// TODO: 需要考虑如何判定什么时候可以改变
+				if f.IsNoChange() {
+					continue
+				}
 				studio.FactorPop(f, f.GetTimeSlot().Index)
 			}
 		}
