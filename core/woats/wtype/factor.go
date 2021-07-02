@@ -64,7 +64,6 @@ type Factor interface {
 
 // FactorInfo 排课因子数据结构定义
 type FactorInfo struct {
-	NRCSign     string               // 确保不重复的组合标识
 	UniqueSign  string               // 唯一标识(选修班或行政班标识)
 	Course      string               // 课程标识
 	Teacher     []string             // 一组任课教师
