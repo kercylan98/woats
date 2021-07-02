@@ -199,57 +199,53 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
 	}
 }
 
-// FactorGroupPush 放置连堂课
-func (slf *Studio) FactorGroupPush(factor wtype.Factor, slot int) exception.Exception {
-	if !factor.IsGroup() {
-		return define.FactorGroupPushException.Hit().
-			Supplement("factor", "not is a group").
-			Supplement("class", factor.GetUniqueSign()).
-			Supplement("course", factor.GetCourse())
-	}
+// FactorPush 将特定因子放置到特定课位
+func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception {
+	if factor.IsGroup() {
+		if !factor.IsGroup() {
+			return define.FactorGroupPushException.Hit().
+				Supplement("factor", "not is a group").
+				Supplement("class", factor.GetUniqueSign()).
+				Supplement("course", factor.GetCourse())
+		}
 
-	min, max := slf.matrix.GetGroupSlotIndex(factor.GetGroup(), slot)
-	if slot >= min || slot <= max {
-		var push = func(factor wtype.Factor, slot int) {
-			log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Posh!")
-			slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
-			for _, timeSlot := range factor.GetSlot() {
-				if timeSlot.Index == slot {
-					factor.(*wtype.FactorInfo).TimeSlot = timeSlot
-					break
+		min, max := slf.matrix.GetGroupSlotIndex(factor.GetGroup(), slot)
+		if slot >= min || slot <= max {
+			var push = func(factor wtype.Factor, slot int) {
+				log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Posh!")
+				slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
+				for _, timeSlot := range factor.GetSlot() {
+					if timeSlot.Index == slot {
+						factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+						break
+					}
 				}
 			}
-		}
-		push(factor, slot)
-		slot++
-		for _, f := range factor.GetGroup() {
-			push(f, slot)
+			push(factor, slot)
 			slot++
+			for _, f := range factor.GetGroup() {
+				push(f, slot)
+				slot++
+			}
+			return nil
 		}
-		return nil
-	}
-	return define.FactorGroupPushException.Hit().
-		Supplement("err", fmt.Sprintf("slot min and max is: %d ~ %d", min, max)).
-		Supplement("slot", slot).
-		Supplement("class", factor.GetUniqueSign()).
-		Supplement("course", factor.GetCourse())
-}
+		return define.FactorGroupPushException.Hit().
+			Supplement("err", fmt.Sprintf("slot min and max is: %d ~ %d", min, max)).
+			Supplement("slot", slot).
+			Supplement("class", factor.GetUniqueSign()).
+			Supplement("course", factor.GetCourse())
+	} else {
+		log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Posh!")
 
-// FactorPush 将特定因子放置到特定课位
-func (slf *Studio) FactorPush(factor wtype.Factor, slot int) {
-	if factor.IsGroup() {
-		panic("please use FactorGroupPush!")
-	}
-	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Posh!")
-
-	slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
-	for _, timeSlot := range factor.GetSlot() {
-		if timeSlot.Index == slot {
-			factor.(*wtype.FactorInfo).TimeSlot = timeSlot
-			break
+		slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
+		for _, timeSlot := range factor.GetSlot() {
+			if timeSlot.Index == slot {
+				factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+				break
+			}
 		}
 	}
-
+	return nil
 }
 
 // FactorMove 将特定因子从一个课位移动到另一个课位(不考虑冲突)

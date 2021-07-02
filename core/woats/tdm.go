@@ -1,6 +1,7 @@
 package woats
 
 import (
+	"fmt"
 	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats/define"
 	"github.com/kercylan98/woats/core/woats/utils"
@@ -237,65 +238,90 @@ func (slf ThreeDimensionalMatrix) IsConflict(factor wtype.Factor, slot int) bool
 
 // IsConflictErr 检查一个因子在特定课位是否冲突
 func (slf ThreeDimensionalMatrix) IsConflictErr(factor wtype.Factor, slot int) exception.Exception {
-	slfSlot := factor.GetSlotWithIndex(slot)
-	// 检查该课位是否禁排
-	if utils.IsContainInt(factor.GetDisable(), slot) {
-		return define.DisableSlotException.Hit().
-			Supplement("class", factor.GetUniqueSign()).
-			Supplement("course", factor.GetCourse()).
-			Supplement("teacher", factor.GetTeacher())
+	var verification = func(factor wtype.Factor, slot int) exception.Exception {
+		slfSlot := factor.GetSlotWithIndex(slot)
+		// 检查该课位是否禁排
+		if utils.IsContainInt(factor.GetDisable(), slot) {
+			return define.DisableSlotException.Hit().
+				Supplement("class", factor.GetUniqueSign()).
+				Supplement("course", factor.GetCourse()).
+				Supplement("teacher", factor.GetTeacher())
+		}
+		// 检查该课位是否存在该课程
+		for _, f := range slf.GetFactors(factor.GetUniqueSign(), slot) {
+			if f.GetCourse() == factor.GetCourse() {
+				return define.CourseConflictException.Hit().
+					Supplement("class", factor.GetUniqueSign()).
+					Supplement("course", factor.GetCourse()).
+					Supplement("teacher", factor.GetTeacher())
+			}
+		}
+
+		for _, timeSlot := range slf.GetSlotExcludeClass(factor.GetUniqueSign()) {
+			// 满足时间交叉时候进行冲突检查
+			if slfSlot.IsCrossed(timeSlot.Slot) {
+				// 教师冲突
+				for _, t := range factor.GetTeacher() {
+					for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
+						if utils.IsContainString(f.GetTeacher(), t) {
+							return define.TeacherConflictException.Hit().
+								Supplement("class", factor.GetUniqueSign()).
+								Supplement("course", factor.GetCourse()).
+								Supplement("teacher", t)
+						}
+					}
+				}
+				// 学生冲突
+				for _, s := range factor.GetStudent() {
+					for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
+						if utils.IsContainString(f.GetStudentUniqueSign(), s.UniqueSign) {
+							return define.StudentConflictException.Hit().
+								Supplement("class", factor.GetUniqueSign()).
+								Supplement("course", factor.GetCourse()).
+								Supplement("teacher", factor.GetTeacher()).
+								Supplement("student", s).
+								Supplement("He is in where", f.GetUniqueSign())
+						}
+					}
+				}
+				// 场地冲突
+				for _, p := range factor.GetPlace() {
+					for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
+						if utils.IsContainString(f.GetPlaceUniqueSign(), p.UniqueSign) {
+							return define.PlaceConflictException.Hit().
+								Supplement("class", factor.GetUniqueSign()).
+								Supplement("course", factor.GetCourse()).
+								Supplement("teacher", factor.GetTeacher()).
+								Supplement("place", factor.GetPlace())
+						}
+					}
+				}
+			}
+		}
+		return nil
 	}
-	// 检查该课位是否存在该课程
-	for _, f := range slf.GetFactors(factor.GetUniqueSign(), slot) {
-		if f.GetCourse() == factor.GetCourse() {
-			return define.CourseConflictException.Hit().
+
+	if err := verification(factor, slot); err != nil {
+		return err
+	}
+	if factor.IsGroup() {
+		min, max := slf.GetGroupSlotIndex(factor.GetGroup(), slot)
+		if slot >= min || slot <= max {
+			slot++
+			for i, f := range factor.GetGroup() {
+				if err := verification(f, slot+i); err != nil {
+					return err
+				}
+			}
+		} else {
+			return define.GroupConflictException.Hit().
+				Supplement("err", fmt.Sprintf("out of schedule size, min and max is: %d ~ %d", min, max)).
 				Supplement("class", factor.GetUniqueSign()).
 				Supplement("course", factor.GetCourse()).
 				Supplement("teacher", factor.GetTeacher())
 		}
 	}
 
-	for _, timeSlot := range slf.GetSlotExcludeClass(factor.GetUniqueSign()) {
-		// 满足时间交叉时候进行冲突检查
-		if slfSlot.IsCrossed(timeSlot.Slot) {
-			// 教师冲突
-			for _, t := range factor.GetTeacher() {
-				for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
-					if utils.IsContainString(f.GetTeacher(), t) {
-						return define.TeacherConflictException.Hit().
-							Supplement("class", factor.GetUniqueSign()).
-							Supplement("course", factor.GetCourse()).
-							Supplement("teacher", t)
-					}
-				}
-			}
-			// 学生冲突
-			for _, s := range factor.GetStudent() {
-				for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
-					if utils.IsContainString(f.GetStudentUniqueSign(), s.UniqueSign) {
-						return define.StudentConflictException.Hit().
-							Supplement("class", factor.GetUniqueSign()).
-							Supplement("course", factor.GetCourse()).
-							Supplement("teacher", factor.GetTeacher()).
-							Supplement("student", s).
-							Supplement("He is in where", f.GetUniqueSign())
-					}
-				}
-			}
-			// 场地冲突
-			for _, p := range factor.GetPlace() {
-				for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
-					if utils.IsContainString(f.GetPlaceUniqueSign(), p.UniqueSign) {
-						return define.PlaceConflictException.Hit().
-							Supplement("class", factor.GetUniqueSign()).
-							Supplement("course", factor.GetCourse()).
-							Supplement("teacher", factor.GetTeacher()).
-							Supplement("place", factor.GetPlace())
-					}
-				}
-			}
-		}
-	}
 	return nil
 }
 
@@ -308,8 +334,16 @@ func (slf ThreeDimensionalMatrix) DataView() *DataView {
 func (slf ThreeDimensionalMatrix) GetAllowSlot(factor wtype.Factor) []*wtype.TimeSlot {
 	var target []*wtype.TimeSlot
 	for _, slot := range factor.GetSlot() {
+		// 区别处理连堂课和单节课程
 		if !slf.IsConflict(factor, slot.Index) {
-			target = append(target, slot)
+			if factor.IsGroup() {
+				min, max := slf.GetGroupSlotIndex(factor.GetGroup(), slot.Index)
+				if slot.Index > min && slot.Index < max {
+					target = append(target, slot)
+				}
+			} else {
+				target = append(target, slot)
+			}
 		}
 	}
 	return target
@@ -322,23 +356,40 @@ func (slf ThreeDimensionalMatrix) GetAllowFirstSlot(factor wtype.Factor, exclude
 	for _, slot := range factor.GetSlotMap() {
 		if !slf.IsConflict(factor, slot.Index) && !utils.IsContainInt(exclude, slot.Index) {
 			p := factor.GetPriority()[slot.Index]
-			if p > priority {
-				priority = p
-				target = slot
+			// 区别处理连堂课和单节课程
+			if factor.IsGroup() {
+				min, max := slf.GetGroupSlotIndex(factor.GetGroup(), slot.Index)
+				if slot.Index > min && slot.Index < max && p > priority {
+					priority = p
+					target = slot
+				}
+			} else {
+				if p > priority {
+					priority = p
+					target = slot
+				}
 			}
 		}
 	}
 	return target
 }
 
-// GetAllowGreaterThanAVESlot 获取所有大于或等于优先级均值的课位
+// GetAllowGreaterThanAVESlot 获取所有大于或等于优先级均值的可放置课位
 func (slf ThreeDimensionalMatrix) GetAllowGreaterThanAVESlot(factor wtype.Factor) []*wtype.TimeSlot {
 	var targets []*wtype.TimeSlot
 	var ave = factor.GetPriorityAVE()
 	for _, slot := range factor.GetSlot() {
 		if !slf.IsConflict(factor, slot.Index) {
 			if factor.GetPriority()[slot.Index] >= ave {
-				targets = append(targets, slot)
+				// 区别处理连堂课和单节课程
+				if factor.IsGroup() {
+					min, max := slf.GetGroupSlotIndex(factor.GetGroup(), slot.Index)
+					if slot.Index > min && slot.Index < max {
+						targets = append(targets, slot)
+					}
+				} else {
+					targets = append(targets, slot)
+				}
 			}
 		}
 	}

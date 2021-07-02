@@ -18,4 +18,7 @@ type Strategy interface {
 
 	// Specific 策略具体内容,当返回false时中断后续策略执行。
 	Specific(factor wtype.Factor, studio *Studio) bool
+
+	// GroupSpecific 策略针对连堂课的具体内容,当返回false时中断后续策略执行。
+	GroupSpecific(factor wtype.Factor, studio *Studio) bool
 }

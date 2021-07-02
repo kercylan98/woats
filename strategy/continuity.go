@@ -24,12 +24,11 @@ func (slf *Continuity) Initialization() {
 
 }
 
-func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool {
-	// 不处理连堂课
-	if factor.IsGroup() {
-		return true
-	}
+func (slf *Continuity) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
+	return true
+}
 
+func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool {
 	// 忽略内容检查
 	if utils.IsContainString(slf.ExcludeClass, factor.GetUniqueSign()) ||
 		utils.IsContainString(slf.ExcludeCourse, factor.GetCourse()) {
@@ -99,7 +98,9 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 	}
 
 	if len(target) > 0 {
-		studio.FactorPush(factor, target[0])
+		if err := studio.FactorPush(factor, target[0]); err != nil {
+			return true
+		}
 		factor.SetNoChange(true)
 		return false
 	}

@@ -15,14 +15,15 @@ type Optimization struct {
 func (slf *Optimization) Initialization() {
 }
 
-func (slf *Optimization) Specific(factor wtype.Factor, studio *woats.Studio) bool {
-	// 不处理连堂课
-	if factor.IsGroup() {
-		return true
-	}
+func (slf *Optimization) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
+	return true
+}
 
+func (slf *Optimization) Specific(factor wtype.Factor, studio *woats.Studio) bool {
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
-		studio.FactorPush(factor, slot.Index)
+		if err := studio.FactorPush(factor, slot.Index); err != nil {
+			return true
+		}
 		return false
 	}
 

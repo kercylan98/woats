@@ -19,9 +19,16 @@ func main() {
 		},
 	)
 
-	if es := w.Run(); len(es) > 0 {
+	if view, es := w.Run(); len(es) > 0 {
 		for _, e := range es {
 			e.Print()
+		}
+	} else {
+		if err := view.CreateClassViewExcel("DP1 Physics HL", "out"); err != nil {
+			panic(err)
+		}
+		if err := view.CreateClassViewExcel("DP1 Mathematics-Pure", "out"); err != nil {
+			panic(err)
 		}
 	}
 }

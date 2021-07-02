@@ -30,7 +30,7 @@ type Woats struct {
 }
 
 // Run 运行排课
-func (slf *Woats) Run() []exception.Exception {
+func (slf *Woats) Run() (*DataView, []exception.Exception) {
 	var (
 		mf         = &ModifierFactory{product: map[string]Modifier{}}
 		exceptions []exception.Exception
@@ -39,7 +39,7 @@ func (slf *Woats) Run() []exception.Exception {
 
 	// 数据初始化
 	if err := slf.designer.Modification(mf); err != nil {
-		return []exception.Exception{err}
+		return nil, []exception.Exception{err}
 	}
 	// 数据优化并校验
 	for _, modifier := range mf.product {
@@ -50,15 +50,15 @@ func (slf *Woats) Run() []exception.Exception {
 	}
 	// 校验异常
 	if len(exceptions) > 0 {
-		return exceptions
+		return nil, exceptions
 	}
 
 	// 排课因子转化
 	for _, modifier := range mf.product {
 		factors = append(factors, modifier.ToFactor()...)
 	}
-
-	return slf.start(factors, newTDM(factors))
+	tdm := newTDM(factors)
+	return tdm.DataView(), slf.start(factors, tdm)
 }
 
 func (slf *Woats) start(factors wtype.FactorGroup, matrix ThreeDimensionalMatrix) []exception.Exception {
@@ -87,7 +87,9 @@ func (slf *Woats) check(fixed, normal wtype.FactorGroup, studio *Studio) []excep
 			if e := studio.matrix.IsConflictErr(factor, factor.GetFixed()); e != nil {
 				exceptions = append(exceptions, e)
 			}
-			studio.FactorPush(factor, factor.GetFixed())
+			if err := studio.FactorPush(factor, factor.GetFixed()); err != nil {
+				exceptions = append(exceptions, err)
+			}
 			return true
 		})
 	}
@@ -106,7 +108,10 @@ func (slf *Woats) check(fixed, normal wtype.FactorGroup, studio *Studio) []excep
 func (slf *Woats) handleFixed(factors wtype.FactorGroup, studio *Studio) {
 	studio.addFactorGroup(factors)
 	studio.Run(func(factor wtype.Factor, studio *Studio) bool {
-		studio.FactorPush(factor, factor.GetFixed())
+		if err := studio.FactorPush(factor, factor.GetFixed()); err != nil {
+			// 无法被放置的固定课
+			panic(err)
+		}
 		factor.SetDisableChange()
 		return true
 	})
@@ -123,7 +128,13 @@ func (slf *Woats) handleNormal(factors wtype.FactorGroup, studio *Studio) {
 				strategy.Initialization()
 			})
 			// 逻辑
-			if isContinue := strategy.Specific(factor, studio); isContinue == false {
+			var isContinue bool
+			if factor.IsGroup() {
+				isContinue = strategy.GroupSpecific(factor, studio)
+			} else {
+				isContinue = strategy.Specific(factor, studio)
+			}
+			if isContinue == false {
 				return true
 			}
 		}

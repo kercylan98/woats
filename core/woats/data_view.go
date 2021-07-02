@@ -94,9 +94,5 @@ func (slf *DataView) CreateClassViewExcel(class string, path string) error {
 		}
 	}
 
-	//for _, relation := range classView {
-	//
-	//}
-
-	return excel.Save(path)
+	return excel.Save(path + "/" + class + ".xlsx")
 }

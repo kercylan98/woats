@@ -33,12 +33,11 @@ func (slf *RandomSeek) Initialization() {
 	}
 }
 
-func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool {
-	// 不处理连堂课
-	if factor.IsGroup() {
-		return true
-	}
+func (slf *RandomSeek) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
+	return true
+}
 
+func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool {
 	if slf.StopLoss != 0 {
 		if studio.GetProgress()/100.0 >= slf.StopLoss {
 			return false
@@ -49,7 +48,9 @@ seek:
 		studio.LockRotation()
 	}
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
-		studio.FactorPush(factor, slot.Index)
+		if err := studio.FactorPush(factor, slot.Index); err != nil {
+			return true
+		}
 		top := studio.GetProgress()
 		if top >= slf.top {
 			slf.top = top

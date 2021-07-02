@@ -14,6 +14,7 @@ var (
 	TeacherConflictException = exception.Reg(100101, "teacher conflict", "教师冲突")
 	StudentConflictException = exception.Reg(100102, "student conflict", "学生冲突")
 	PlaceConflictException   = exception.Reg(100103, "place conflict", "教学场地冲突")
+	GroupConflictException   = exception.Reg(100104, "group course conflict", "连堂课冲突")
 
 	NotFoundException         = exception.Reg(100400, "not found element", "未找到元素")
 	SnapshotRecoveryException = exception.Reg(100401, "snapshot recover failed", "三维课表快照恢复失败，没有可恢复的快照")
