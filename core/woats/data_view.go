@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/kercylan98/woats/core/woats/wtype"
 	"github.com/tealeg/xlsx"
+	"math"
+	"sort"
 )
 
 type DataView struct {
@@ -71,7 +73,6 @@ func (slf *DataView) CreateClassViewExcel(class string, path string) error {
 
 	classView := slf.GetClassView(class)
 	title := shell.AddRow()
-	title.AddCell()
 	for i, _ := range classView {
 		title.AddCell().SetInt(i + 1)
 	}
@@ -84,7 +85,6 @@ func (slf *DataView) CreateClassViewExcel(class string, path string) error {
 
 	for i := 0; i < maxRow; i++ {
 		row := shell.AddRow()
-		row.AddCell()
 		for ci := 0; ci < len(classView); ci++ {
 			content := ""
 			for _, factor := range classView[ci].slotFactorGroupR[classView[ci].slots[i].Index] {
@@ -95,4 +95,75 @@ func (slf *DataView) CreateClassViewExcel(class string, path string) error {
 	}
 
 	return excel.Save(path + "/" + class + ".xlsx")
+}
+
+// CreateAllViewExcel 创建总视图表格
+func (slf *DataView) CreateAllViewExcel(path string) error {
+	excel := xlsx.NewFile()
+	shell, err := excel.AddSheet("表")
+	if err != nil {
+		return err
+	}
+
+	title := shell.AddRow()
+	title.AddCell().SetString("*")
+	for i := 0; i < 7; i++ {
+		title.AddCell().SetString(fmt.Sprintf("周 %d", i+1))
+	}
+
+	style := xlsx.NewStyle()
+	style.Alignment.WrapText = true
+	for i := 0; i < 50; i++ {
+		r := shell.AddRow()
+		r.SetHeight(170)
+		r.AddCell()
+		for i := 0; i < 7; i++ {
+			r.AddCell().SetStyle(style)
+		}
+	}
+	shell.SetColWidth(1, 7, 80)
+	shell.SetColWidth(0, 0, 16)
+
+	content := map[int]string{}
+
+	for class, _ := range slf.matrix {
+		ss := slf.matrix.GetTimeSlots(class)
+		sort.Slice(ss, func(i, j int) bool {
+			return ss[i].Index < ss[j].Index
+		})
+		for _, timeSlot := range ss {
+			var fContent string
+			for _, factor := range slf.matrix[class][timeSlot.Index] {
+				fContent += fmt.Sprintf("%s, %s, %s\r\n", factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher())
+			}
+			content[timeSlot.Index] = content[timeSlot.Index] + fContent
+		}
+	}
+
+	for class, _ := range slf.matrix {
+		ss := slf.matrix.GetTimeSlots(class)
+		sort.Slice(ss, func(i, j int) bool {
+			return ss[i].Index < ss[j].Index
+		})
+		for _, timeSlot := range ss {
+			// 当天最大最小index
+			var min, max = math.MaxInt, math.MinInt
+			for _, s := range ss {
+				if s.WhatDay == timeSlot.WhatDay {
+					if s.Index > max {
+						max = s.Index
+					}
+					if s.Index < min {
+						min = s.Index
+					}
+				}
+			}
+
+			shell.Rows[max-(max-timeSlot.Index)-min+1].Cells[timeSlot.WhatDay].SetString(content[timeSlot.Index])
+			shell.Rows[max-(max-timeSlot.Index)-min+1].Cells[0].SetString(fmt.Sprintf("%d:%d~%d:%d",
+				timeSlot.StartHour, timeSlot.StartMinute, timeSlot.EndHour, timeSlot.EndMinute))
+		}
+	}
+
+	return excel.Save(path + "/all.xlsx")
 }

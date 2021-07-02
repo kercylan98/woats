@@ -119,7 +119,10 @@ func (slf *Woats) handleFixed(factors wtype.FactorGroup, studio *Studio) {
 
 func (slf *Woats) handleNormal(factors wtype.FactorGroup, studio *Studio) {
 	// 按照优先级排序（最好的 -> 最差的 -> 未设置的）
-	studio.addFactorGroup(factors)
+	fg := factors.SortWithPriorityAVE()
+	ng := fg.GetAllNotGroupFactor()
+	g := fg.GetAllGroupFactor()
+	studio.addFactorGroup(append(g, ng...))
 	studio.Run(func(factor wtype.Factor, studio *Studio) bool {
 
 		for _, strategy := range slf.strategy {

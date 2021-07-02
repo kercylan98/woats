@@ -17,7 +17,7 @@ func (slf *FactorGroup) PopAllFixed() FactorGroup {
 		f := (*slf)[i]
 		if f.IsFixed() {
 			result = append(result, f)
-		}else {
+		} else {
 			replace = append(replace, f)
 		}
 	}
@@ -49,6 +49,28 @@ func (slf *FactorGroup) Upset() FactorGroup {
 	return newFG
 }
 
+// GetAllGroupFactor 获取所有连堂课
+func (slf *FactorGroup) GetAllGroupFactor() FactorGroup {
+	var newFG = make(FactorGroup, 0)
+	for _, factor := range *slf {
+		if factor.IsGroup() {
+			newFG = append(newFG, factor)
+		}
+	}
+	return newFG
+}
+
+// GetAllNotGroupFactor 获取所有非连堂课
+func (slf *FactorGroup) GetAllNotGroupFactor() FactorGroup {
+	var newFG = make(FactorGroup, 0)
+	for _, factor := range *slf {
+		if !factor.IsGroup() {
+			newFG = append(newFG, factor)
+		}
+	}
+	return newFG
+}
+
 // SortWithPriorityAVE 返回一个根据优先级均值排序后的因子组
 func (slf *FactorGroup) SortWithPriorityAVE() FactorGroup {
 	var newFG = slf.Upset()
@@ -58,8 +80,8 @@ func (slf *FactorGroup) SortWithPriorityAVE() FactorGroup {
 		if ia == ja {
 			// 确保公平
 			rand.Seed(time.Now().UnixNano())
-			return (0 + rand.Intn(2 - 0)) == 0
-		}else {
+			return (0 + rand.Intn(2-0)) == 0
+		} else {
 			return ia > ja
 		}
 	})
@@ -75,8 +97,8 @@ func (slf *FactorGroup) SortWithPrioritySUM() FactorGroup {
 		if ia == ja {
 			// 确保公平
 			rand.Seed(time.Now().UnixNano())
-			return (0 + rand.Intn(2 - 0)) == 0
-		}else {
+			return (0 + rand.Intn(2-0)) == 0
+		} else {
 			return ia > ja
 		}
 	})

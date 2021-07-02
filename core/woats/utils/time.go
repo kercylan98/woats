@@ -8,5 +8,5 @@ func TimeToNumber(hour int, minute int) float64 {
 	if minute == 0 {
 		return float64(hour)
 	}
-	return float64(hour) + float64(minute) / 60.0
+	return float64(hour) + float64(minute)/60.0
 }

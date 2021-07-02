@@ -19,10 +19,14 @@ const (
 // NewTimeSlot 创建一个基于时间的课位
 func NewTimeSlot(index int, whatDay int, startHour, startMinute, endHour, endMinute int) *TimeSlot {
 	ts := &TimeSlot{
-		Index:   index,
-		WhatDay: whatDay,
-		Start:   utils.TimeToNumber(startHour, startMinute),
-		End:     utils.TimeToNumber(endHour, endMinute),
+		Index:       index,
+		WhatDay:     whatDay,
+		Start:       utils.TimeToNumber(startHour, startMinute),
+		End:         utils.TimeToNumber(endHour, endMinute),
+		StartHour:   startHour,
+		StartMinute: startMinute,
+		EndHour:     endHour,
+		EndMinute:   endMinute,
 	}
 	ts.UniqueSign = fmt.Sprintf("%d:%f~%f", ts.WhatDay, ts.Start, ts.End)
 	return ts
@@ -35,6 +39,12 @@ type TimeSlot struct {
 	WhatDay    int     // 第几天
 	Start      float64 // 开始时间
 	End        float64 // 结束时间
+
+	StartHour   int
+	StartMinute int
+
+	EndHour   int
+	EndMinute int
 }
 
 // GreaterThan 比较是否大于另一个时间课位（如 8:00～8:40 比 9:00~9:10 小）

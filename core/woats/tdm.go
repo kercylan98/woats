@@ -475,11 +475,11 @@ func (slf *ThreeDimensionalMatrix) GetGroupSlotIndex(group wtype.FactorGroup, sl
 		for _, timeSlot := range factor.GetSlot() {
 			var s = factor.GetSlotWithIndex(slot)
 			if s.WhatDay == timeSlot.WhatDay {
-				if s.Index > max {
-					max = s.Index
+				if timeSlot.Index > max {
+					max = timeSlot.Index
 				}
-				if s.Index < min {
-					min = s.Index
+				if timeSlot.Index < min {
+					min = timeSlot.Index
 				}
 			}
 		}

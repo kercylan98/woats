@@ -51,7 +51,7 @@ func (slf *BilingualSchoolAffiliatedToEastChinaNormalUniversity) Modification(mo
 				return define.DataConversionException.Hit().Supplement("err", err)
 			}
 
-			var section = make([]int, sectionSum)
+			var section = make([]int, 0)
 			for i := 0; i < sectionSum; i++ {
 				switch row.Cells[1].String() {
 				case "DP1 Physics HL",
@@ -67,10 +67,10 @@ func (slf *BilingualSchoolAffiliatedToEastChinaNormalUniversity) Modification(mo
 					"DP1 Biology HL",
 					"DP2 Biology HL",
 					"DP1 Biology":
-					section[i] = 2
+					section = append(section, 2)
 					i++
 				default:
-					section[i] = 1
+					section = append(section, 1)
 				}
 			}
 

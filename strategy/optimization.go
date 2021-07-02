@@ -20,6 +20,7 @@ func (slf *Optimization) GroupSpecific(factor wtype.Factor, studio *woats.Studio
 		if err := studio.FactorPush(factor, slot.Index); err != nil {
 			panic(err)
 		}
+		factor.SetNoChange(true)
 		return false
 	}
 

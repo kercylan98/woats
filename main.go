@@ -8,11 +8,11 @@ import (
 
 func main() {
 	w := woats.New(new(designer.BilingualSchoolAffiliatedToEastChinaNormalUniversity), 10,
-		&strategy.Continuity{
-			Optimum: 3,
-			Min:     2,
-			Max:     4,
-		},
+		//&strategy.Continuity{
+		//	Optimum: 3,
+		//	Min:     2,
+		//	Max:     4,
+		//},
 		new(strategy.Optimization),
 		&strategy.RandomSeek{
 			StopLoss: 0.96,
@@ -28,6 +28,9 @@ func main() {
 			panic(err)
 		}
 		if err := view.CreateClassViewExcel("DP1 Mathematics-Pure", "out"); err != nil {
+			panic(err)
+		}
+		if err := view.CreateAllViewExcel("out"); err != nil {
 			panic(err)
 		}
 	}

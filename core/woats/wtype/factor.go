@@ -110,10 +110,20 @@ func (slf *FactorInfo) IsNoChange() bool {
 
 func (slf *FactorInfo) SetDisableChange() {
 	slf.DisableChange = true
+	if slf.IsGroup() {
+		for _, factor := range slf.Group {
+			factor.(*FactorInfo).DisableChange = true
+		}
+	}
 }
 
 func (slf *FactorInfo) SetNoChange(noChange bool) {
 	slf.NoChange = noChange
+	if slf.IsGroup() {
+		for _, factor := range slf.Group {
+			factor.(*FactorInfo).NoChange = noChange
+		}
+	}
 }
 
 func (slf *FactorInfo) GetSlotWithSameDay(slot *TimeSlot) []*TimeSlot {
