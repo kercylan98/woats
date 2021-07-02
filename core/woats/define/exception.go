@@ -22,4 +22,5 @@ var (
 	IdenticalSlotIndexException = exception.Reg(100500, "there are unreasonable slot", "存在相同的课位号")
 	DisableSlotException        = exception.Reg(100501, "disabled slot", "被禁用的排课课位")
 	FactorGroupPushException    = exception.Reg(100502, "factor group push failed", "连堂课放置失败")
+	NoChangeException           = exception.Reg(100503, "the class positions that are not recommended to be changed are not approved and not adjusted", "不建议改变的课位判定不通过，调整失败")
 )

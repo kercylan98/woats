@@ -16,6 +16,13 @@ func (slf *Optimization) Initialization() {
 }
 
 func (slf *Optimization) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
+	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
+		if err := studio.FactorPush(factor, slot.Index); err != nil {
+			panic(err)
+		}
+		return false
+	}
+
 	return true
 }
 

@@ -147,14 +147,18 @@ func (slf *Studio) DeleteSnapshot(match func(name string) bool) {
 }
 
 // FactorPop 将特定因子从特定课位中弹出到代办中的前面
-func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
+func (slf *Studio) FactorPop(factor wtype.Factor, slot int) exception.Exception {
 	if factor.IsDisableChange() {
-		return
+		return define.DisableSlotException.Hit().
+			Supplement("class", factor.GetUniqueSign()).
+			Supplement("course", factor.GetCourse())
 	}
 	if factor.IsNoChange() {
 		// 命中0～100000中产生的少部分随机数，则允许调整
 		if !(rand.Intn(1000001) <= int(1000000-(slf.GetDifficult()*1000000))) {
-			return
+			return define.NoChangeException.Hit().
+				Supplement("class", factor.GetUniqueSign()).
+				Supplement("course", factor.GetCourse())
 		}
 		factor.SetNoChange(false)
 	}
@@ -193,10 +197,13 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) {
 	if count > 0 && factor.IsGroup() {
 		for _, f := range factor.GetGroup() {
 			if f.GetTimeSlot() != nil {
-				slf.FactorPop(f, f.GetTimeSlot().Index)
+				if err := slf.FactorPop(f, f.GetTimeSlot().Index); err != nil {
+					return err
+				}
 			}
 		}
 	}
+	return nil
 }
 
 // FactorPush 将特定因子放置到特定课位
@@ -249,20 +256,41 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 }
 
 // FactorMove 将特定因子从一个课位移动到另一个课位(不考虑冲突)
-func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) {
+func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) exception.Exception {
 	if factor.IsDisableChange() {
-		return
+		return define.DisableSlotException.Hit().
+			Supplement("class", factor.GetUniqueSign()).
+			Supplement("course", factor.GetCourse())
 	}
 	if factor.IsNoChange() {
 		// 命中0～100000中产生的少部分随机数，则允许调整
 		if !(rand.Intn(1000001) <= int(1000000-(slf.GetDifficult()*1000000))) {
-			return
+			return define.NoChangeException.Hit().
+				Supplement("class", factor.GetUniqueSign()).
+				Supplement("course", factor.GetCourse())
 		}
 		factor.SetNoChange(false)
 	}
 	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "=>", targetSlot)
-	slf.FactorPop(factor, slot)
-	slf.FactorPush(factor, targetSlot)
+	if !factor.IsGroup() {
+		if err := slf.FactorPop(factor, slot); err != nil {
+			return err
+		}
+		return slf.FactorPush(factor, targetSlot)
+	} else {
+		min, max := slf.matrix.GetGroupSlotIndex(factor.GetGroup(), slot)
+		if slot >= min || slot <= max {
+			if err := slf.FactorPop(factor, slot); err != nil {
+				return err
+			}
+			return slf.FactorPush(factor, targetSlot)
+		}
+		return define.FactorGroupPushException.Hit().
+			Supplement("err", fmt.Sprintf("slot min and max is: %d ~ %d", min, max)).
+			Supplement("slot", slot).
+			Supplement("class", factor.GetUniqueSign()).
+			Supplement("course", factor.GetCourse())
+	}
 }
 
 // Run 开始执行
