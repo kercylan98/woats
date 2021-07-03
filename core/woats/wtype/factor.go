@@ -89,11 +89,11 @@ func (slf *FactorInfo) IsGroup() bool {
 
 func (slf *FactorInfo) GetGroup() FactorGroup {
 	if len(slf.Group) == 0 {
-		return []Factor{slf}
+		return []Factor{}
 	}
 	group := make(FactorGroup, 0)
 	for _, factor := range slf.Group {
-		if factor != nil || factor != slf {
+		if factor != nil && factor != slf {
 			group = append(group, factor)
 		}
 	}

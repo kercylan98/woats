@@ -60,38 +60,41 @@ func (slf *Test) Modification(modifier *woats.ModifierFactory) exception.Excepti
 	modifier.OrdinaryClass("小学一年级1班", 1, 1, tss).
 		AddLeader("李鸣宇").
 		AddStudent("小红", "小明", "小狼").Ok().
-		AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(5, 2, 3, 28).SetDisable(9).Ok().
-		AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
-		AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+		AddCourse("语文", "李玉涛").
+		Section(2, 1, 1, 1, 3).
+		//AddFixed(5, 2, 3, 28).
+		SetDisable(9).Ok()
+	//AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
+	//AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
+	//AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
 
-	modifier.OrdinaryClass("小学一年级2班", 1, 1, tss).
-		AddLeader("李鸣宇").
-		AddStudent("小王", "小学生", "小东西").Ok().
-		//AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(4).SetDisable(9).Ok().
-		AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
-		AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
-
-	modifier.OrdinaryClass("小学二年级1班", 1, 2, tss).
-		AddLeader("张涛").
-		AddStudent("大红", "大明", "大狼").Ok().
-		AddCourse("语文", "王宇").Section(1, 1, 1, 2).AddFixed(7).SetDisable(9).Ok().
-		AddCourse("数学", "宇智博").Section(1, 1, 1, 2).Ok().
-		AddCourse("英语", "汪欣").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
-
-	modifier.OrdinaryClass("小学二年级2班", 1, 2, tss).
-		AddLeader("张涛").
-		AddStudent("大王", "大学生", "大东西").Ok().
-		AddCourse("语文", "王宇").Section(1, 1, 1, 2).AddFixed(21).SetDisable(9).Ok().
-		AddCourse("数学", "宇智博").Section(1, 1, 1, 2).SetPriority(3, 0.8).Ok().
-		AddCourse("英语", "汪欣").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
-
-	modifier.ElectiveClass("绘画精进", []int{1, 1, 1, 1}, tss). //AddFixed(1).
-								AddStudent("小王", "小学生", "小东西").Ok().
-								AddTeacher("王宇").Ok()
+	//modifier.OrdinaryClass("小学一年级2班", 1, 1, tss).
+	//	AddLeader("李鸣宇").
+	//	AddStudent("小王", "小学生", "小东西").Ok().
+	//	//AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(4).SetDisable(9).Ok().
+	//	AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
+	//	AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
+	//	AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+	//
+	//modifier.OrdinaryClass("小学二年级1班", 1, 2, tss).
+	//	AddLeader("张涛").
+	//	AddStudent("大红", "大明", "大狼").Ok().
+	//	AddCourse("语文", "王宇").Section(1, 1, 1, 2).AddFixed(7).SetDisable(9).Ok().
+	//	AddCourse("数学", "宇智博").Section(1, 1, 1, 2).Ok().
+	//	AddCourse("英语", "汪欣").Section(1, 1, 1, 1, 1, 1, 1).Ok().
+	//	AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+	//
+	//modifier.OrdinaryClass("小学二年级2班", 1, 2, tss).
+	//	AddLeader("张涛").
+	//	AddStudent("大王", "大学生", "大东西").Ok().
+	//	AddCourse("语文", "王宇").Section(1, 1, 1, 2).AddFixed(21).SetDisable(9).Ok().
+	//	AddCourse("数学", "宇智博").Section(1, 1, 1, 2).SetPriority(3, 0.8).Ok().
+	//	AddCourse("英语", "汪欣").Section(1, 1, 1, 1, 1, 1, 1).Ok().
+	//	AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+	//
+	//modifier.ElectiveClass("绘画精进", []int{1, 1, 1, 1}, tss). //AddFixed(1).
+	//							AddStudent("小王", "小学生", "小东西").Ok().
+	//							AddTeacher("王宇").Ok()
 
 	return nil
 }

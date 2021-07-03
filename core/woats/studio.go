@@ -212,11 +212,11 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 		min, max := slf.matrix.GetGroupSlotIndex(factor.GetGroup(), slot)
 		if slot >= min || slot <= max {
 			var push = func(factor wtype.Factor, slot int) {
-				log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Push!")
 				slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
 				for _, timeSlot := range factor.GetSlot() {
 					if timeSlot.Index == slot {
 						factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+						log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Push!")
 						break
 					}
 				}
@@ -235,12 +235,11 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 			Supplement("class", factor.GetUniqueSign()).
 			Supplement("course", factor.GetCourse())
 	} else {
-		log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Push!")
-
 		slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
 		for _, timeSlot := range factor.GetSlot() {
 			if timeSlot.Index == slot {
 				factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+				log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Push!")
 				break
 			}
 		}
@@ -288,6 +287,19 @@ func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) exc
 
 // Run 开始执行
 func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
+	var (
+		successHandle = func(factor ...wtype.Factor) {
+			slf.todo = RemoveFactor(slf.todo, factor...)
+			slf.finish = append(slf.finish, factor...)
+			slf.process = RemoveFactor(slf.process, factor...)
+		}
+		failedHandle = func(factor ...wtype.Factor) {
+			slf.todo = append(slf.todo, factor...)
+			slf.finish = RemoveFactor(slf.finish, factor...)
+			slf.process = RemoveFactor(slf.process, factor...)
+		}
+	)
+
 	// 真实循环次数
 	var realLoopCount = 0
 	for {
@@ -310,42 +322,12 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 		} else {
 			factor := slf.process[0]
 			if success := handle(factor, slf); success {
-				if !factor.IsGroup() {
-					slf.finish = append(slf.finish, factor)
-				} else {
-					for _, f := range factor.GetGroup() {
-						slf.finish = append(slf.finish, f)
-					}
-				}
+				successHandle(factor)
+				successHandle(factor.GetGroup()...)
 			} else {
-				if !factor.IsGroup() {
-					slf.todo = append(slf.todo, factor)
-				} else {
-					for _, f := range factor.GetGroup() {
-						slf.todo = append(slf.todo, f)
-					}
-				}
+				failedHandle(factor)
+				failedHandle(factor.GetGroup()...)
 			}
-			if !factor.IsGroup() {
-				slf.process = slf.process[1:]
-			} else {
-				slf.process = slf.process[1:]
-				var replace = make(wtype.FactorGroup, 0)
-				for _, process := range slf.process {
-					add := true
-					for _, f := range factor.GetGroup() {
-						if process == f {
-							add = false
-							break
-						}
-					}
-					if add {
-						replace = append(replace, process)
-					}
-				}
-				slf.process = replace
-			}
-			slf.log(factor)
 
 			// 徘徊检测
 			var finishCount = len(slf.finish)
@@ -359,6 +341,8 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 			if realLoopCount > 100 {
 				log.Println("There may be an infinite loop that is not unlocked!!!!!!")
 			}
+			slf.log(factor)
+
 		}
 	}
 }

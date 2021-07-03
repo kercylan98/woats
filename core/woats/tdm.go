@@ -239,6 +239,11 @@ func (slf ThreeDimensionalMatrix) IsConflict(factor wtype.Factor, slot int) bool
 // IsConflictErr 检查一个因子在特定课位是否冲突
 func (slf ThreeDimensionalMatrix) IsConflictErr(factor wtype.Factor, slot int) exception.Exception {
 	var verification = func(factor wtype.Factor, slot int) exception.Exception {
+		if slot >= len(factor.GetSlot())-1 {
+			return define.NotFoundException.Hit().
+				Supplement("slot", slot).
+				Supplement("max", len(factor.GetSlot())-1)
+		}
 		slfSlot := factor.GetSlotWithIndex(slot)
 		// 检查该课位是否禁排
 		if utils.IsContainInt(factor.GetDisable(), slot) {
