@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	w := woats.New(new(designer.BilingualSchoolAffiliatedToEastChinaNormalUniversity), 10,
+	w := woats.New(new(designer.Test), 10,
 		//&strategy.Continuity{
 		//	Optimum: 3,
 		//	Min:     2,

@@ -45,8 +45,8 @@ func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 	}
 seek:
 	{
-		studio.LockRotation()
 	}
+	studio.LockRotation()
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
 		if err := studio.FactorPush(factor, slot.Index); err != nil {
 			return true
@@ -71,12 +71,10 @@ seek:
 	if conflict := studio.GetMatrix().GetConflictFactorAll(factor, basic); len(conflict) != 0 {
 		for _, fg := range conflict {
 			for _, f := range fg {
-				// TODO: 需要考虑如何判定什么时候可以改变
-				if f.IsNoChange() {
-					continue
-				}
 				if f.GetTimeSlot() != nil {
-					studio.FactorPop(f, f.GetTimeSlot().Index)
+					if err := studio.FactorPop(f, f.GetTimeSlot().Index); err != nil {
+						return true
+					}
 				}
 			}
 		}
