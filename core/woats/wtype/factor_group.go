@@ -9,6 +9,54 @@ import (
 // FactorGroup 对一组排课因子的封装
 type FactorGroup []Factor
 
+// IsContainFactor 该组因子中是否包含另一组因子
+func (slf *FactorGroup) IsContainFactor(factorGroup FactorGroup) bool {
+	for _, factor := range *slf {
+		for _, f := range factorGroup {
+			if factor == f {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// RemoveFactor 返回删除特定因子后的因子组
+func (slf *FactorGroup) RemoveFactor(factor ...Factor) FactorGroup {
+	var result = make(FactorGroup, 0)
+	for _, f := range *slf {
+		match := false
+		for _, w := range factor {
+			if f == w {
+				match = true
+				break
+			}
+		}
+		if !match {
+			result = append(result, f)
+		}
+	}
+	return result
+}
+
+// Unrepeated 返回去重后的因子组
+func (slf *FactorGroup) Unrepeated() (newArr FactorGroup) {
+	newArr = make(FactorGroup, 0)
+	for i := 0; i < len(*slf); i++ {
+		repeat := false
+		for j := i + 1; j < len(*slf); j++ {
+			if (*slf)[i] == (*slf)[j] {
+				repeat = true
+				break
+			}
+		}
+		if !repeat {
+			newArr = append(newArr, (*slf)[i])
+		}
+	}
+	return
+}
+
 // PopAllFixed 弹出所有固定课
 func (slf *FactorGroup) PopAllFixed() FactorGroup {
 	var replace = make(FactorGroup, 0)
