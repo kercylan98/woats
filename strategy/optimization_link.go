@@ -19,10 +19,14 @@ func (slf *OptimizationLink) OnPush(factor wtype.Factor, slot *wtype.TimeSlot, s
 
 func (slf *OptimizationLink) OnPop(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
 	if slot.Index == slf.SlotA {
-		_ = studio.PopSameFactor(factor, slf.SlotB)
+		if err := studio.PopSameFactor(factor, slf.SlotB); err != nil {
+			panic(err)
+		}
 	}
 	if slot.Index == slf.SlotB {
-		_ = studio.PopSameFactor(factor, slf.SlotA)
+		if err := studio.PopSameFactor(factor, slf.SlotA); err != nil {
+			panic(err)
+		}
 	}
 	return
 }

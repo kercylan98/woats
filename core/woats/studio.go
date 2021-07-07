@@ -91,9 +91,6 @@ func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Excep
 		}
 	}
 
-	if len(slf.todo)+len(slf.process)+len(slf.finish) > slf.fgTotal {
-		panic("!!!")
-	}
 	if err := slf.FactorPush(target, slot); err != nil {
 		return err
 	}
@@ -436,7 +433,7 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 				successHandle(factor.GetGroup()...)
 			} else {
 				failedHandle(factor)
-				failedHandle(factor.GetGroup()...)
+				//failedHandle(factor.GetGroup()...)
 			}
 
 			// 徘徊检测
