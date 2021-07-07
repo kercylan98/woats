@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats/define"
+	"github.com/kercylan98/woats/core/woats/utils"
 	"github.com/kercylan98/woats/core/woats/wtype"
 	"log"
 	"math/rand"
@@ -43,7 +44,28 @@ type Studio struct {
 
 	linger    int // 徘徊次数，当剩余数量减少又增加的时候记为一次徘徊
 	remainder int // 上一次剩余数量计数
+}
 
+// GetAllSlotNumber 获取所有课位号码，可排除特定课位号码
+func (slf *Studio) GetAllSlotNumber(factor wtype.Factor, exclude ...int) []int {
+	var result []int
+	for _, slot := range factor.GetSlot() {
+		if !utils.IsContainInt(exclude, slot.Index) {
+			result = append(result, slot.Index)
+		}
+	}
+	return result
+}
+
+// GetSameFactorCount 获取特定因子总数
+func (slf *Studio) GetSameFactorCount(factor wtype.Factor) int {
+	count := 0
+	for _, f := range append(slf.finish, append(slf.todo, slf.process...)...) {
+		if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+			count++
+		}
+	}
+	return count
 }
 
 // PushSameFactor 放置一个相同特征的因子到特定课位，无可用因子时候返回错误信息
@@ -339,6 +361,7 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 			Supplement("class", factor.GetUniqueSign()).
 			Supplement("course", factor.GetCourse())
 	} else {
+
 		slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
 		for _, timeSlot := range factor.GetSlot() {
 			if timeSlot.Index == slot {

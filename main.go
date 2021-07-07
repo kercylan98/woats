@@ -18,9 +18,12 @@ func main() {
 		&strategy.OptimizationLink{SlotA: 25, SlotB: 26},
 		&strategy.OptimizationLink{SlotA: 36, SlotB: 37},
 		&strategy.OptimizationLink{SlotA: 47, SlotB: 48},
-		new(strategy.Optimization),
+		&strategy.Optimization{
+			ExcludeSlot: []int{3, 4, 14, 15, 25, 26, 36, 37, 47, 48},
+		},
 		&strategy.RandomSeek{
-			StopLoss: 0.96,
+			StopLoss:    0.96,
+			ExcludeSlot: []int{3, 4, 14, 15, 25, 26, 36, 37, 47, 48},
 		},
 	)
 

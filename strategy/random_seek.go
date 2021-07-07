@@ -13,7 +13,8 @@ import (
 // 在设置止损点的时候，当总体进度大于止损点则停止继续寻求
 // TODO: 存在很大的优化空间，该策略赋予了更大随机的可能性
 type RandomSeek struct {
-	StopLoss float64 // 止损点(0~1)，当值为0的时候不生效
+	StopLoss    float64 // 止损点(0~1)，当值为0的时候不生效
+	ExcludeSlot []int   // 排除课位
 
 	basic    map[wtype.Factor]int // 寻求基数
 	basicMax int                  // 寻求基数上限
@@ -55,7 +56,7 @@ seek:
 	{
 	}
 	studio.LockRotation()
-	if slot := studio.GetMatrix().GetAllowFirstSlot(factor); slot != nil {
+	if slot := studio.GetMatrix().GetAllowFirstSlot(factor, slf.ExcludeSlot...); slot != nil {
 		if err := studio.FactorPush(factor, slot.Index); err != nil {
 			return true
 		}
