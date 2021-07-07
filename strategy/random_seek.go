@@ -20,6 +20,14 @@ type RandomSeek struct {
 	top      float64              // 最高分
 }
 
+func (slf *RandomSeek) OnPush(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
+	return
+}
+
+func (slf *RandomSeek) OnPop(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
+	return
+}
+
 func (slf *RandomSeek) Initialization() {
 	slf.basic = map[wtype.Factor]int{}
 	slf.basicMax = 10

@@ -12,6 +12,14 @@ import (
 type Optimization struct {
 }
 
+func (slf *Optimization) OnPush(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
+	return
+}
+
+func (slf *Optimization) OnPop(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
+	return
+}
+
 func (slf *Optimization) Initialization() {
 }
 

@@ -20,6 +20,14 @@ type Continuity struct {
 	ExcludePlace   []string // 忽略场地
 }
 
+func (slf *Continuity) OnPush(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
+	return
+}
+
+func (slf *Continuity) OnPop(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {
+	return
+}
+
 func (slf *Continuity) Initialization() {
 
 }

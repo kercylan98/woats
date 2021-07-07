@@ -7,12 +7,17 @@ import (
 )
 
 func main() {
-	w := woats.New(new(designer.Test), 10,
+	w := woats.New(new(designer.BilingualSchoolAffiliatedToEastChinaNormalUniversity), 10,
 		//&strategy.Continuity{
 		//	Optimum: 3,
 		//	Min:     2,
 		//	Max:     4,
 		//},
+		&strategy.OptimizationLink{SlotA: 3, SlotB: 4},
+		&strategy.OptimizationLink{SlotA: 14, SlotB: 15},
+		&strategy.OptimizationLink{SlotA: 25, SlotB: 26},
+		&strategy.OptimizationLink{SlotA: 36, SlotB: 37},
+		&strategy.OptimizationLink{SlotA: 47, SlotB: 48},
 		new(strategy.Optimization),
 		&strategy.RandomSeek{
 			StopLoss: 0.96,

@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-func newStudio(group wtype.FactorGroup, matrix ThreeDimensionalMatrix, rotationMax int) *Studio {
+func newStudio(group wtype.FactorGroup, matrix ThreeDimensionalMatrix, strategy []Strategy, rotationMax int) *Studio {
 	return &Studio{
 		matrix:      matrix,
 		process:     []wtype.Factor{},
@@ -20,13 +20,14 @@ func newStudio(group wtype.FactorGroup, matrix ThreeDimensionalMatrix, rotationM
 		snapshot:    map[string]*Studio{},
 		rotationMax: rotationMax,
 		rotation:    0,
-		bind:        map[Strategy]map[wtype.Factor]wtype.FactorGroup{},
+		strategy:    strategy,
 	}
 }
 
 // Studio 工作空间
 type Studio struct {
-	matrix ThreeDimensionalMatrix // 三维课表矩阵(引用)
+	matrix   ThreeDimensionalMatrix // 三维课表矩阵(引用)
+	strategy []Strategy
 
 	process wtype.FactorGroup // 处理中
 	todo    wtype.FactorGroup // 待处理
@@ -43,13 +44,75 @@ type Studio struct {
 	linger    int // 徘徊次数，当剩余数量减少又增加的时候记为一次徘徊
 	remainder int // 上一次剩余数量计数
 
-	bind map[Strategy]map[wtype.Factor]wtype.FactorGroup // 特定因子与其他因子的绑定关系
 }
 
 // PushSameFactor 放置一个相同特征的因子到特定课位，无可用因子时候返回错误信息
 func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Exception {
 	var target wtype.Factor = nil
 	for _, f := range append(slf.process, slf.todo...) {
+		if f == factor {
+			continue
+		}
+		if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+			target = f
+			break
+		}
+	}
+	if target == nil {
+		// 尝试从其他课位拔取
+		for _, f := range slf.finish {
+			if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+				if f.GetTimeSlot().Index == slot || f == factor {
+					continue
+				}
+				target = f
+				if err := slf.FactorPop(f, f.GetTimeSlot().Index); err != nil {
+					return err
+				}
+				break
+			}
+		}
+		if target != nil {
+			if err := slf.FactorPop(target, target.GetTimeSlot().Index); err != nil {
+				return err
+			}
+		} else {
+			return define.NotFoundException.Hit().
+				Supplement("err", "not found same factor").
+				Supplement("class", factor.GetUniqueSign()).
+				Supplement("course", factor.GetCourse()).
+				Supplement("teacher", factor.GetTeacher())
+		}
+	}
+
+	for _, f := range slf.matrix.GetConflictFactor(target, slot) {
+		if err := slf.FactorPop(f, slot); err != nil {
+			return err
+		}
+	}
+
+	if len(slf.todo)+len(slf.process)+len(slf.finish) > slf.fgTotal {
+		panic("!!!")
+	}
+	if err := slf.FactorPush(target, slot); err != nil {
+		return err
+	}
+
+	slf.todo = slf.todo.RemoveFactor(target)
+	slf.process = slf.process.RemoveFactor(target)
+	slf.finish = append(slf.finish, target)
+	slf.finish = slf.finish.Unrepeated()
+
+	return nil
+}
+
+// PopSameFactor 在特定课位弹出一个相同特征的因子，无可用因子时候返回错误信息
+func (slf *Studio) PopSameFactor(factor wtype.Factor, slot int) exception.Exception {
+	var target wtype.Factor = nil
+	for _, f := range slf.finish {
+		if f == factor {
+			continue
+		}
 		if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
 			target = f
 			break
@@ -63,55 +126,15 @@ func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Excep
 			Supplement("teacher", factor.GetTeacher())
 	}
 
-	if err := slf.FactorPush(target, slot); err != nil {
+	if err := slf.FactorPop(target, slot); err != nil {
 		return err
 	}
 
-	slf.todo = slf.todo.RemoveFactor(target)
-	slf.process = slf.todo.RemoveFactor(target)
-	slf.finish = append(slf.finish, target)
+	//slf.todo = append(slf.todo, target)
+	//slf.process = slf.process.RemoveFactor(target)
+	//slf.finish = slf.finish.RemoveFactor(target)
 
 	return nil
-}
-
-// Bind 绑定因子关系
-func (slf *Studio) Bind(strategy Strategy, factor wtype.Factor, bindFactor ...wtype.Factor) {
-	if _, exist := slf.bind[strategy]; !exist {
-		slf.bind[strategy] = map[wtype.Factor]wtype.FactorGroup{}
-	}
-
-	all := append(bindFactor, factor)
-	for _, f := range all {
-		if _, exist := slf.bind[strategy][f]; !exist {
-			slf.bind[strategy][f] = make(wtype.FactorGroup, 0)
-		}
-
-		for _, w := range all {
-			if w != f {
-				old := slf.bind[strategy][f]
-				slf.bind[strategy][f] = append(old.Unrepeated(), w)
-			}
-		}
-	}
-}
-
-// Unbind 解除特定因子的所有绑定
-func (slf *Studio) Unbind(strategy Strategy, factor wtype.Factor) {
-	delete(slf.bind[strategy], factor)
-	for key, group := range slf.bind[strategy] {
-		slf.bind[strategy][key] = group.RemoveFactor(factor)
-	}
-}
-
-// GetBind 获取绑定的因子
-func (slf *Studio) GetBind(strategy Strategy, factor wtype.Factor) wtype.FactorGroup {
-	return slf.bind[strategy][factor]
-}
-
-// IsBind 检查特定因子是否与一组因子均存在绑定
-func (slf *Studio) IsBind(strategy Strategy, factor wtype.Factor, targetFactorGroup wtype.FactorGroup) bool {
-	myBind := slf.bind[strategy][factor]
-	return myBind.IsContainFactor(targetFactorGroup)
 }
 
 // GetDifficult 获取当前排课困难指数
@@ -174,7 +197,7 @@ func (slf *Studio) RecoverySnapshot(name string) bool {
 		slf.logout = snapshot.logout
 		slf.linger = snapshot.linger
 		slf.remainder = snapshot.remainder
-		slf.bind = snapshot.bind
+		slf.strategy = snapshot.strategy
 		delete(slf.snapshot, name)
 		return true
 	}
@@ -195,7 +218,7 @@ func (slf *Studio) clone() *Studio {
 		logout:       slf.logout,
 		linger:       slf.linger,
 		remainder:    slf.remainder,
-		bind:         slf.bind,
+		strategy:     slf.strategy,
 	}
 }
 
@@ -261,6 +284,9 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) exception.Exception 
 			}
 			slf.matrix[factor.GetUniqueSign()][slot] = replace
 			count++
+			for _, strategy := range slf.strategy {
+				strategy.OnPop(f, f.GetSlotMap()[slot], slf)
+			}
 		} else {
 			replace = append(replace, f)
 		}
@@ -272,6 +298,9 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) exception.Exception 
 			if f.GetTimeSlot() != nil {
 				if err := slf.FactorPop(f, f.GetTimeSlot().Index); err != nil {
 					return err
+				}
+				for _, strategy := range slf.strategy {
+					strategy.OnPop(f, f.GetSlotMap()[slot], slf)
 				}
 			}
 		}
@@ -290,10 +319,14 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 				for _, timeSlot := range factor.GetSlot() {
 					if timeSlot.Index == slot {
 						factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+						for _, strategy := range slf.strategy {
+							strategy.OnPush(factor, timeSlot, slf)
+						}
 						log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Push!")
 						break
 					}
 				}
+
 			}
 			push(factor, slot)
 			slot++
@@ -313,6 +346,9 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 		for _, timeSlot := range factor.GetSlot() {
 			if timeSlot.Index == slot {
 				factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+				for _, strategy := range slf.strategy {
+					strategy.OnPush(factor, timeSlot, slf)
+				}
 				log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Push!")
 				break
 			}

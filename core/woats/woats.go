@@ -64,7 +64,7 @@ func (slf *Woats) Run() (*DataView, []exception.Exception) {
 func (slf *Woats) start(factors wtype.FactorGroup, matrix ThreeDimensionalMatrix) []exception.Exception {
 	var fixed = factors.PopAllFixed()
 	var normal = factors
-	var studio = newStudio([]wtype.Factor{}, matrix, slf.rotationMax)
+	var studio = newStudio([]wtype.Factor{}, matrix, slf.strategy, slf.rotationMax)
 	// 终校验
 	if es := slf.check(fixed, normal, studio); len(es) > 0 {
 		return es
