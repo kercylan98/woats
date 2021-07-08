@@ -13,6 +13,11 @@ func main() {
 		//	Min:     2,
 		//	Max:     4,
 		//},
+		&strategy.QuantitativeCombination{
+			Combination:  []int{1, 12, 23, 34, 45},
+			Count:        1,
+			CheckTeacher: true,
+		},
 		&strategy.OptimizationLink{SlotA: 3, SlotB: 4},
 		&strategy.OptimizationLink{SlotA: 14, SlotB: 15},
 		&strategy.OptimizationLink{SlotA: 25, SlotB: 26},

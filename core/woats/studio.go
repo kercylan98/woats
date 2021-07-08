@@ -46,6 +46,105 @@ type Studio struct {
 	remainder int // 上一次剩余数量计数
 }
 
+// GetSamePlace 获取特定一组课位相同教学场地的因子出现个数
+func (slf *Studio) GetSamePlace(factor wtype.Factor, slot []int) int {
+	var count = 0
+	for _, slots := range slf.matrix {
+		for index, factorGroup := range slots {
+			if !utils.IsContainInt(slot, index) {
+				continue
+			}
+			for _, f := range factorGroup {
+				for _, s := range f.GetPlace() {
+					match := false
+					for _, s2 := range factor.GetPlace() {
+						if s == s2 {
+							match = true
+							break
+						}
+					}
+					if match {
+						count++
+					}
+				}
+			}
+		}
+	}
+	return count
+}
+
+// GetSameStudent 获取特定一组课位相同学生的因子出现个数
+func (slf *Studio) GetSameStudent(factor wtype.Factor, slot []int) int {
+	var count = 0
+	for _, slots := range slf.matrix {
+		for index, factorGroup := range slots {
+			if !utils.IsContainInt(slot, index) {
+				continue
+			}
+			for _, f := range factorGroup {
+				for _, s := range f.GetStudent() {
+					match := false
+					for _, s2 := range factor.GetStudent() {
+						if s == s2 {
+							match = true
+							break
+						}
+					}
+					if match {
+						count++
+					}
+				}
+			}
+		}
+	}
+	return count
+}
+
+// GetSameTeacher 获取特定一组课位相同教师的因子出现个数
+func (slf *Studio) GetSameTeacher(factor wtype.Factor, slot []int) int {
+	var count = 0
+	for _, slots := range slf.matrix {
+		for index, factorGroup := range slots {
+			if !utils.IsContainInt(slot, index) {
+				continue
+			}
+			for _, f := range factorGroup {
+				for _, s := range f.GetTeacher() {
+					match := false
+					for _, s2 := range factor.GetTeacher() {
+						if s == s2 {
+							match = true
+							break
+						}
+					}
+					if match {
+						count++
+					}
+				}
+			}
+		}
+	}
+	return count
+}
+
+// GetSameCourse 获取特定一组课位相同课程的因子出现个数
+func (slf *Studio) GetSameCourse(factor wtype.Factor, slot []int) int {
+	var count = 0
+	for _, slots := range slf.matrix {
+		for index, factorGroup := range slots {
+			if !utils.IsContainInt(slot, index) {
+				continue
+			}
+			for _, f := range factorGroup {
+				if f.GetCourse() == factor.GetCourse() {
+					count++
+				}
+			}
+		}
+	}
+	return count
+}
+
 // GetAllSlotNumber 获取所有课位号码，可排除特定课位号码
 func (slf *Studio) GetAllSlotNumber(factor wtype.Factor, exclude ...int) []int {
 	var result []int
