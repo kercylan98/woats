@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats"
 	"github.com/kercylan98/woats/core/woats/utils"
 	"github.com/kercylan98/woats/core/woats/wtype"
@@ -32,24 +33,24 @@ func (slf *Continuity) Initialization() {
 
 }
 
-func (slf *Continuity) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
-	return true
+func (slf *Continuity) GroupSpecific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
+	return woats.SkipStrategy.Hit()
 }
 
-func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
 	// 忽略内容检查
 	if utils.IsContainString(slf.ExcludeClass, factor.GetUniqueSign()) ||
 		utils.IsContainString(slf.ExcludeCourse, factor.GetCourse()) {
-		return true
+		return woats.SkipStrategy.Hit()
 	}
 	for _, s := range factor.GetTeacher() {
 		if utils.IsContainString(slf.ExcludeTeacher, s) {
-			return true
+			return woats.SkipStrategy.Hit()
 		}
 	}
 	for l, _ := range factor.GetPlace() {
 		if utils.IsContainString(slf.ExcludePlace, l) {
-			return true
+			return woats.SkipStrategy.Hit()
 		}
 	}
 
@@ -58,7 +59,7 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 
 	// 当未预先放置任何该因子关联课程时，交由下一个策略处理
 	if slots = studio.GetMatrix().GetPlaceSlotWithCourse(factor); len(slots) == 0 {
-		return true
+		return woats.SkipStrategy.Hit()
 	} else {
 		for _, slot := range slots {
 			mapper[slot] = factor.GetSlotWithSameDay(slot)
@@ -107,11 +108,11 @@ func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) bool 
 
 	if len(target) > 0 {
 		if err := studio.FactorPush(factor, target[0]); err != nil {
-			return true
+			return err
 		}
 		factor.SetNoChange(true)
-		return false
+		return nil
 	}
 
-	return true
+	return woats.SkipStrategy.Hit()
 }

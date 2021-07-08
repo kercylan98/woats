@@ -65,10 +65,6 @@ func (slf *Woats) start(factors wtype.FactorGroup, matrix ThreeDimensionalMatrix
 	var fixed = factors.PopAllFixed()
 	var normal = factors
 	var studio = newStudio([]wtype.Factor{}, matrix, slf.strategy, slf.rotationMax)
-	// 终校验
-	if es := slf.check(fixed, normal, studio); len(es) > 0 {
-		return es
-	}
 	studio.logout = true
 	slf.handleFixed(fixed, studio)
 	slf.handleNormal(normal, studio)
@@ -76,44 +72,15 @@ func (slf *Woats) start(factors wtype.FactorGroup, matrix ThreeDimensionalMatrix
 	return []exception.Exception{}
 }
 
-func (slf *Woats) check(fixed, normal wtype.FactorGroup, studio *Studio) []exception.Exception {
-	var exceptions []exception.Exception
-
-	if len(fixed) > 0 {
-		fixedStudio := studio.clone()
-		fixedStudio.addFactorGroup(fixed)
-		fixedStudio.Run(func(factor wtype.Factor, studio *Studio) bool {
-			// TODO: 固定课检查内容
-			if e := studio.matrix.IsConflictErr(factor, factor.GetFixed()); e != nil {
-				exceptions = append(exceptions, e)
-			}
-			if err := studio.FactorPush(factor, factor.GetFixed()); err != nil {
-				exceptions = append(exceptions, err)
-			}
-			return true
-		})
-	}
-
-	if len(normal) > 0 {
-		normalStudio := studio.clone()
-		normalStudio.addFactorGroup(normal)
-		normalStudio.Run(func(factor wtype.Factor, studio *Studio) bool {
-			// TODO: 普通课检查内容
-			return true
-		})
-	}
-	return exceptions
-}
-
 func (slf *Woats) handleFixed(factors wtype.FactorGroup, studio *Studio) {
 	studio.addFactorGroup(factors)
-	studio.Run(func(factor wtype.Factor, studio *Studio) bool {
+	studio.Run(func(factor wtype.Factor, studio *Studio) exception.Exception {
 		if err := studio.FactorPush(factor, factor.GetFixed()); err != nil {
 			// 无法被放置的固定课
-			panic(err)
+			return err
 		}
 		factor.SetDisableChange()
-		return true
+		return nil
 	})
 }
 
@@ -123,26 +90,29 @@ func (slf *Woats) handleNormal(factors wtype.FactorGroup, studio *Studio) {
 	ng := fg.GetAllNotGroupFactor()
 	g := fg.GetAllGroupFactor()
 	studio.addFactorGroup(append(g, ng...))
-	studio.Run(func(factor wtype.Factor, studio *Studio) bool {
-
+	studio.Run(func(factor wtype.Factor, studio *Studio) exception.Exception {
+		var se exception.Exception
 		for _, strategy := range slf.strategy {
 			// 初始化阶段
 			slf.strategyInitLock[strategy].Do(func() {
 				strategy.Initialization()
 			})
 			// 逻辑
-			var isContinue bool
+			var err exception.Exception
 			if factor.IsGroup() {
-				isContinue = strategy.GroupSpecific(factor, studio)
+				err = strategy.GroupSpecific(factor, studio)
 			} else {
-				isContinue = strategy.Specific(factor, studio)
+				err = strategy.Specific(factor, studio)
 			}
-			if isContinue == false {
-				return true
+			if err != nil {
+				se = err
+				continue
+			} else {
+				return nil
 			}
 		}
 
-		return false
+		return se
 	})
 
 }

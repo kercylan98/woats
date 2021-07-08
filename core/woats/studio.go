@@ -216,11 +216,6 @@ func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Excep
 		return err
 	}
 
-	slf.todo = slf.todo.RemoveFactor(target)
-	slf.process = slf.process.RemoveFactor(target)
-	slf.finish = append(slf.finish, target)
-	slf.finish = slf.finish.Unrepeated()
-
 	return nil
 }
 
@@ -437,6 +432,10 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 				for _, timeSlot := range factor.GetSlot() {
 					if timeSlot.Index == slot {
 						factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+						slf.todo = slf.todo.RemoveFactor(factor)
+						slf.process = slf.process.RemoveFactor(factor)
+						slf.finish = append(slf.finish, factor)
+						slf.finish = slf.finish.Unrepeated()
 						for _, strategy := range slf.strategy {
 							strategy.OnPush(factor, timeSlot, slf)
 						}
@@ -465,6 +464,10 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 		for _, timeSlot := range factor.GetSlot() {
 			if timeSlot.Index == slot {
 				factor.(*wtype.FactorInfo).TimeSlot = timeSlot
+				slf.todo = slf.todo.RemoveFactor(factor)
+				slf.process = slf.process.RemoveFactor(factor)
+				slf.finish = append(slf.finish, factor)
+				slf.finish = slf.finish.Unrepeated()
 				for _, strategy := range slf.strategy {
 					strategy.OnPush(factor, timeSlot, slf)
 				}
@@ -515,20 +518,7 @@ func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) exc
 }
 
 // Run 开始执行
-func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
-	var (
-		successHandle = func(factor ...wtype.Factor) {
-			slf.todo = slf.todo.RemoveFactor(factor...)
-			slf.finish = append(slf.finish, factor...)
-			slf.process = slf.process.RemoveFactor(factor...)
-		}
-		failedHandle = func(factor ...wtype.Factor) {
-			slf.todo = append(slf.todo, factor...)
-			slf.finish = slf.finish.RemoveFactor(factor...)
-			slf.process = slf.process.RemoveFactor(factor...)
-		}
-	)
-
+func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) exception.Exception) {
 	// 真实循环次数
 	var realLoopCount = 0
 	for {
@@ -550,12 +540,12 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) bool) {
 			return
 		} else {
 			factor := slf.process[0]
-			if success := handle(factor, slf); success {
-				successHandle(factor)
-				successHandle(factor.GetGroup()...)
-			} else {
-				failedHandle(factor)
-				//failedHandle(factor.GetGroup()...)
+			if err := handle(factor, slf); err != nil {
+				// 无任何策略可以解决该因子
+				slf.todo = append(slf.todo, factor)
+				slf.todo = slf.todo.Unrepeated()
+				slf.process = slf.process.RemoveFactor(factor)
+				slf.finish = slf.finish.RemoveFactor(factor)
 			}
 
 			// 徘徊检测

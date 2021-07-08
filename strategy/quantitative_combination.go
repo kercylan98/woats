@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats"
 	"github.com/kercylan98/woats/core/woats/utils"
 	"github.com/kercylan98/woats/core/woats/wtype"
@@ -28,16 +29,16 @@ func (slf *QuantitativeCombination) Initialization() {
 	}
 }
 
-func (slf *QuantitativeCombination) Specific(factor wtype.Factor, studio *woats.Studio) bool {
-	var exec = func(factor wtype.Factor) bool {
+func (slf *QuantitativeCombination) Specific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
+	var exec = func(factor wtype.Factor) exception.Exception {
 		slot := studio.GetMatrix().GetAllowFirstSlot(factor, studio.GetAllSlotNumber(factor, slf.Combination...)...)
 		if slot != nil {
 			if err := studio.FactorPush(factor, slot.Index); err != nil {
-				return true
+				return err
 			}
-			return false
+			return nil
 		}
-		return true
+		return woats.SkipStrategy.Hit()
 	}
 
 	if slf.CheckTeacher && slf.Count > 0 && studio.GetSameTeacher(factor, slf.Combination) < slf.Count {
@@ -49,11 +50,11 @@ func (slf *QuantitativeCombination) Specific(factor wtype.Factor, studio *woats.
 	} else if slf.CheckPlace && slf.Count > 0 && studio.GetSamePlace(factor, slf.Combination) < slf.Count {
 		return exec(factor)
 	}
-	return true
+	return woats.SkipStrategy.Hit()
 }
 
-func (slf *QuantitativeCombination) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
-	return true
+func (slf *QuantitativeCombination) GroupSpecific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
+	return woats.SkipStrategy.Hit()
 }
 
 func (slf *QuantitativeCombination) OnPush(factor wtype.Factor, slot *wtype.TimeSlot, studio *woats.Studio) {

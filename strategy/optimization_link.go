@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats"
 	"github.com/kercylan98/woats/core/woats/wtype"
 )
@@ -37,39 +38,39 @@ func (slf *OptimizationLink) Initialization() {
 
 }
 
-func (slf *OptimizationLink) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+func (slf *OptimizationLink) Specific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
 	if slf.SlotA == slf.SlotB {
-		return true
+		return woats.SkipStrategy.Hit()
 	}
 
 	if studio.GetSameFactorCount(factor) == 1 {
-		return false
+		return nil
 	}
 
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor, studio.GetAllSlotNumber(factor, slf.SlotA, slf.SlotB)...); slot != nil {
 		if slot.Index == slf.SlotA {
 			if err := studio.FactorPush(factor, slot.Index); err != nil {
-				return true
+				return err
 			}
 			if err := studio.PushSameFactor(factor, slf.SlotB); err != nil {
-				return true
+				return err
 			}
-			return false
+			return nil
 		}
 		if slot.Index == slf.SlotB {
 			if err := studio.FactorPush(factor, slot.Index); err != nil {
-				return true
+				return err
 			}
 			if err := studio.PushSameFactor(factor, slf.SlotA); err != nil {
-				return true
+				return err
 			}
-			return false
+			return nil
 		}
 
 	}
-	return true
+	return woats.SkipStrategy.Hit()
 }
 
-func (slf *OptimizationLink) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
-	return true
+func (slf *OptimizationLink) GroupSpecific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
+	return woats.SkipStrategy.Hit()
 }

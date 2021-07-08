@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats"
 	"github.com/kercylan98/woats/core/woats/wtype"
 	"math"
@@ -42,14 +43,14 @@ func (slf *RandomSeek) Initialization() {
 	}
 }
 
-func (slf *RandomSeek) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
-	return true
+func (slf *RandomSeek) GroupSpecific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
+	return woats.SkipStrategy.Hit()
 }
 
-func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+func (slf *RandomSeek) Specific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
 	if slf.StopLoss != 0 {
 		if studio.GetProgress()/100.0 >= slf.StopLoss {
-			return false
+			return nil
 		}
 	}
 seek:
@@ -58,7 +59,7 @@ seek:
 	studio.LockRotation()
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor, slf.ExcludeSlot...); slot != nil {
 		if err := studio.FactorPush(factor, slot.Index); err != nil {
-			return true
+			return err
 		}
 		top := studio.GetProgress()
 		if top >= slf.top {
@@ -68,7 +69,7 @@ seek:
 			studio.RecoverySnapshot("RANDOM_SEEK_SNAPSHOT")
 		}
 		studio.UnLockRotation()
-		return false
+		return nil
 	}
 
 	// 初始化基数
@@ -82,7 +83,7 @@ seek:
 			for _, f := range fg {
 				if f.GetTimeSlot() != nil {
 					if err := studio.FactorPop(f, f.GetTimeSlot().Index); err != nil {
-						return true
+						return err
 					}
 				}
 			}
@@ -102,5 +103,5 @@ seek:
 	studio.UnLockRotation()
 
 	slf.basic[factor] = 1
-	return true
+	return woats.SkipStrategy.Hit()
 }

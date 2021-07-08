@@ -1,6 +1,7 @@
 package strategy
 
 import (
+	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats"
 	"github.com/kercylan98/woats/core/woats/wtype"
 )
@@ -24,25 +25,25 @@ func (slf *Optimization) OnPop(factor wtype.Factor, slot *wtype.TimeSlot, studio
 func (slf *Optimization) Initialization() {
 }
 
-func (slf *Optimization) GroupSpecific(factor wtype.Factor, studio *woats.Studio) bool {
+func (slf *Optimization) GroupSpecific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor, slf.ExcludeSlot...); slot != nil {
 		if err := studio.FactorPush(factor, slot.Index); err != nil {
-			panic(err)
+			return err
 		}
 		factor.SetNoChange(true)
-		return false
+		return nil
 	}
 
-	return true
+	return woats.SkipStrategy.Hit()
 }
 
-func (slf *Optimization) Specific(factor wtype.Factor, studio *woats.Studio) bool {
+func (slf *Optimization) Specific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
 	if slot := studio.GetMatrix().GetAllowFirstSlot(factor, slf.ExcludeSlot...); slot != nil {
 		if err := studio.FactorPush(factor, slot.Index); err != nil {
-			return true
+			return err
 		}
-		return false
+		return nil
 	}
 
-	return true
+	return woats.SkipStrategy.Hit()
 }
