@@ -17,7 +17,7 @@ var (
 	GroupConflictException   = exception.Reg(100104, "group course conflict", "连堂课冲突")
 
 	NotFoundException         = exception.Reg(100400, "not found element", "未找到元素")
-	SnapshotRecoveryException = exception.Reg(100401, "snapshot recover failed", "三维课表快照恢复失败，没有可恢复的快照")
+	SnapshotRecoveryException = exception.Reg(100401, "snapshot recover failed", "课表快照恢复失败，没有可恢复的快照")
 
 	IdenticalSlotIndexException = exception.Reg(100500, "there are unreasonable slot", "存在相同的课位号")
 	DisableSlotException        = exception.Reg(100501, "disabled slot", "被禁用的排课课位")
