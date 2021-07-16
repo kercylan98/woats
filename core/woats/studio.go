@@ -160,7 +160,7 @@ func (slf *Studio) GetAllSlotNumber(factor wtype.Factor, exclude ...int) []int {
 func (slf *Studio) GetSameFactorCount(factor wtype.Factor) int {
 	count := 0
 	for _, f := range append(slf.finish, append(slf.todo, slf.process...)...) {
-		if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+		if f.GetClass() == factor.GetClass() && f.GetCourse() == factor.GetCourse() {
 			count++
 		}
 	}
@@ -174,7 +174,7 @@ func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Excep
 		if f == factor {
 			continue
 		}
-		if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+		if f.GetClass() == factor.GetClass() && f.GetCourse() == factor.GetCourse() {
 			target = f
 			break
 		}
@@ -182,7 +182,7 @@ func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Excep
 	if target == nil {
 		// 尝试从其他课位拔取
 		for _, f := range slf.finish {
-			if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+			if f.GetClass() == factor.GetClass() && f.GetCourse() == factor.GetCourse() {
 				if f.GetTimeSlot().Index == slot || f == factor {
 					continue
 				}
@@ -200,7 +200,7 @@ func (slf *Studio) PushSameFactor(factor wtype.Factor, slot int) exception.Excep
 		} else {
 			return define.NotFoundException.Hit().
 				Supplement("err", "not found same factor").
-				Supplement("class", factor.GetUniqueSign()).
+				Supplement("class", factor.GetClass()).
 				Supplement("course", factor.GetCourse()).
 				Supplement("teacher", factor.GetTeacher())
 		}
@@ -226,7 +226,7 @@ func (slf *Studio) PopSameFactor(factor wtype.Factor, slot int) exception.Except
 		if f == factor {
 			continue
 		}
-		if f.GetUniqueSign() == factor.GetUniqueSign() && f.GetCourse() == factor.GetCourse() {
+		if f.GetClass() == factor.GetClass() && f.GetCourse() == factor.GetCourse() {
 			target = f
 			break
 		}
@@ -234,7 +234,7 @@ func (slf *Studio) PopSameFactor(factor wtype.Factor, slot int) exception.Except
 	if target == nil {
 		return define.NotFoundException.Hit().
 			Supplement("err", "not found same factor").
-			Supplement("class", factor.GetUniqueSign()).
+			Supplement("class", factor.GetClass()).
 			Supplement("course", factor.GetCourse()).
 			Supplement("teacher", factor.GetTeacher())
 	}
@@ -359,26 +359,26 @@ func (slf *Studio) DeleteSnapshot(match func(name string) bool) {
 func (slf *Studio) FactorPop(factor wtype.Factor, slot int) exception.Exception {
 	if factor.IsDisableChange() {
 		return define.DisableSlotException.Hit().
-			Supplement("class", factor.GetUniqueSign()).
+			Supplement("class", factor.GetClass()).
 			Supplement("course", factor.GetCourse())
 	}
 	if factor.IsNoChange() {
 		// 命中0～100000中产生的少部分随机数，则允许调整
 		if !(rand.Intn(1000001) <= int(1000000-(slf.GetDifficult()*1000000))) {
 			return define.NoChangeException.Hit().
-				Supplement("class", factor.GetUniqueSign()).
+				Supplement("class", factor.GetClass()).
 				Supplement("course", factor.GetCourse())
 		}
 		factor.SetNoChange(false)
 	}
-	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Pop!")
+	log.Println(factor.GetClass(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Pop!")
 
 	var replace = make(wtype.FactorGroup, 0)
 	var replaceFinish = make(wtype.FactorGroup, 0)
 
 	count := 0
-	for i := 0; i < len(slf.matrix[factor.GetUniqueSign()][slot]); i++ {
-		f := slf.matrix[factor.GetUniqueSign()][slot][i]
+	for i := 0; i < len(slf.matrix[factor.GetClass()][slot]); i++ {
+		f := slf.matrix[factor.GetClass()][slot][i]
 		if f == factor {
 			slf.todo = append(slf.todo, f)
 			// 查找finish
@@ -389,13 +389,13 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) exception.Exception 
 			}
 			slf.finish = replaceFinish
 			// 从课表中拔出
-			for _, mf := range slf.matrix[factor.GetUniqueSign()][slot] {
+			for _, mf := range slf.matrix[factor.GetClass()][slot] {
 				if mf != f {
 					mf.(*wtype.FactorInfo).TimeSlot = nil
 					replace = append(replace, mf)
 				}
 			}
-			slf.matrix[factor.GetUniqueSign()][slot] = replace
+			slf.matrix[factor.GetClass()][slot] = replace
 			count++
 			for _, strategy := range slf.strategy {
 				strategy.OnPop(f, f.GetSlotMap()[slot], slf)
@@ -405,7 +405,7 @@ func (slf *Studio) FactorPop(factor wtype.Factor, slot int) exception.Exception 
 		}
 	}
 
-	slf.matrix[factor.GetUniqueSign()][slot] = replace
+	slf.matrix[factor.GetClass()][slot] = replace
 	if count > 0 && factor.IsGroup() {
 		for _, f := range factor.GetGroup() {
 			if f.GetTimeSlot() != nil {
@@ -428,7 +428,7 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 		min, max := slf.matrix.GetGroupSlotIndex(factor.GetGroup(), slot)
 		if slot >= min || slot <= max {
 			var push = func(factor wtype.Factor, slot int) {
-				slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
+				slf.matrix[factor.GetClass()][slot] = append(slf.matrix[factor.GetClass()][slot], factor)
 				for _, timeSlot := range factor.GetSlot() {
 					if timeSlot.Index == slot {
 						factor.(*wtype.FactorInfo).TimeSlot = timeSlot
@@ -439,7 +439,7 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 						for _, strategy := range slf.strategy {
 							strategy.OnPush(factor, timeSlot, slf)
 						}
-						log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Push!")
+						log.Println(factor.GetClass(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Group Push!")
 						break
 					}
 				}
@@ -456,11 +456,11 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 		return define.FactorGroupPushException.Hit().
 			Supplement("err", fmt.Sprintf("slot min and max is: %d ~ %d", min, max)).
 			Supplement("slot", slot).
-			Supplement("class", factor.GetUniqueSign()).
+			Supplement("class", factor.GetClass()).
 			Supplement("course", factor.GetCourse())
 	} else {
 
-		slf.matrix[factor.GetUniqueSign()][slot] = append(slf.matrix[factor.GetUniqueSign()][slot], factor)
+		slf.matrix[factor.GetClass()][slot] = append(slf.matrix[factor.GetClass()][slot], factor)
 		for _, timeSlot := range factor.GetSlot() {
 			if timeSlot.Index == slot {
 				factor.(*wtype.FactorInfo).TimeSlot = timeSlot
@@ -471,7 +471,7 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 				for _, strategy := range slf.strategy {
 					strategy.OnPush(factor, timeSlot, slf)
 				}
-				log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Push!")
+				log.Println(factor.GetClass(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "Push!")
 				break
 			}
 		}
@@ -483,19 +483,19 @@ func (slf *Studio) FactorPush(factor wtype.Factor, slot int) exception.Exception
 func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) exception.Exception {
 	if factor.IsDisableChange() {
 		return define.DisableSlotException.Hit().
-			Supplement("class", factor.GetUniqueSign()).
+			Supplement("class", factor.GetClass()).
 			Supplement("course", factor.GetCourse())
 	}
 	if factor.IsNoChange() {
 		// 命中0～100000中产生的少部分随机数，则允许调整
 		if !(rand.Intn(1000001) <= int(1000000-(slf.GetDifficult()*1000000))) {
 			return define.NoChangeException.Hit().
-				Supplement("class", factor.GetUniqueSign()).
+				Supplement("class", factor.GetClass()).
 				Supplement("course", factor.GetCourse())
 		}
 		factor.SetNoChange(false)
 	}
-	log.Println(factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "=>", targetSlot)
+	log.Println(factor.GetClass(), factor.GetCourse(), factor.GetTeacher(), "=>", slot, "=>", targetSlot)
 	if !factor.IsGroup() {
 		if err := slf.FactorPop(factor, slot); err != nil {
 			return err
@@ -512,7 +512,7 @@ func (slf *Studio) FactorMove(factor wtype.Factor, slot int, targetSlot int) exc
 		return define.FactorGroupPushException.Hit().
 			Supplement("err", fmt.Sprintf("slot min and max is: %d ~ %d", min, max)).
 			Supplement("slot", slot).
-			Supplement("class", factor.GetUniqueSign()).
+			Supplement("class", factor.GetClass()).
 			Supplement("course", factor.GetCourse())
 	}
 }
@@ -545,7 +545,6 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) exceptio
 				slf.todo = append(slf.todo, factor)
 				slf.todo = slf.todo.Unrepeated()
 				slf.process = slf.process.RemoveFactor(factor)
-				slf.finish = slf.finish.RemoveFactor(factor)
 			}
 
 			// 徘徊检测
@@ -561,7 +560,6 @@ func (slf *Studio) Run(handle func(factor wtype.Factor, studio *Studio) exceptio
 				log.Println("There may be an infinite loop that is not unlocked!!!!!!")
 			}
 			slf.log(factor)
-
 		}
 	}
 }
@@ -588,7 +586,7 @@ func (slf *Studio) log(factor ...wtype.Factor) {
 	if len(factor) > 0 {
 		var f = factor[0]
 		log.Println(fmt.Sprintf("%.2f%s [%s] %s Process:%4d Todo:%4d Unfinish:%4d Finish:%4d Total:%4d",
-			slf.GetProgress(), "%", f.GetUniqueSign(), f.GetCourse(),
+			slf.GetProgress(), "%", f.GetClass(), f.GetCourse(),
 			len(slf.process), len(slf.todo), len(slf.todo)+len(slf.process), len(slf.finish), slf.fgTotal))
 	} else {
 		log.Println(fmt.Sprintf("%.2f%s Process:%4d Todo:%4d Unfinish:%4d Finish:%4d Total:%4d",

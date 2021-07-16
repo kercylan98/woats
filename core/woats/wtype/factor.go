@@ -8,6 +8,8 @@ import (
 type Factor interface {
 	// GetUniqueSign 获取唯一标识
 	GetUniqueSign() string
+	// GetClass 获取班级
+	GetClass() string
 	// GetCourse 获取课程标识
 	GetCourse() string
 	// GetTeacher 获取任课教师
@@ -64,7 +66,8 @@ type Factor interface {
 
 // FactorInfo 排课因子数据结构定义
 type FactorInfo struct {
-	UniqueSign  string               // 唯一标识(选修班或行政班标识)
+	UniqueSign  string               // 唯一标识
+	Class       string               // 班级标识(选修班或行政班标识)
 	Course      string               // 课程标识
 	Teacher     []string             // 一组任课教师
 	TeacherMode int                  // 教师选择模式
@@ -83,6 +86,10 @@ type FactorInfo struct {
 	NoChange      bool      // 该因子放上课位后是否不应该再调整（允许在实在困难的情况下被调整）
 }
 
+func (slf *FactorInfo) GetUniqueSign() string {
+	return slf.UniqueSign
+}
+
 func (slf *FactorInfo) IsGroup() bool {
 	return slf.Group != nil && len(slf.Group) > 0
 }
@@ -93,7 +100,7 @@ func (slf *FactorInfo) GetGroup() FactorGroup {
 	}
 	group := make(FactorGroup, 0)
 	for _, factor := range slf.Group {
-		if factor != nil && factor != slf {
+		if factor != nil && factor.GetUniqueSign() != slf.GetUniqueSign() {
 			group = append(group, factor)
 		}
 	}
@@ -213,8 +220,8 @@ func (slf *FactorInfo) GetSlot() []*TimeSlot {
 	return slf.Slot
 }
 
-func (slf *FactorInfo) GetUniqueSign() string {
-	return slf.UniqueSign
+func (slf *FactorInfo) GetClass() string {
+	return slf.Class
 }
 
 func (slf *FactorInfo) GetTeacher() []string {

@@ -39,7 +39,7 @@ func (slf *Continuity) GroupSpecific(factor wtype.Factor, studio *woats.Studio) 
 
 func (slf *Continuity) Specific(factor wtype.Factor, studio *woats.Studio) exception.Exception {
 	// 忽略内容检查
-	if utils.IsContainString(slf.ExcludeClass, factor.GetUniqueSign()) ||
+	if utils.IsContainString(slf.ExcludeClass, factor.GetClass()) ||
 		utils.IsContainString(slf.ExcludeCourse, factor.GetCourse()) {
 		return woats.SkipStrategy.Hit()
 	}

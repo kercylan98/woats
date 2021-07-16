@@ -1,6 +1,7 @@
 package modifier
 
 import (
+	"fmt"
 	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats/define"
 	"github.com/kercylan98/woats/core/woats/utils"
@@ -51,11 +52,13 @@ type ElectiveClassModifier struct {
 
 func (slf *ElectiveClassModifier) ToFactor() []wtype.Factor {
 	var arr []wtype.Factor
+	var index = 1
 	for _, section := range slf.section {
 		var group wtype.FactorGroup
 		for i := 0; i < section; i++ {
 			f := &wtype.FactorInfo{
-				UniqueSign:  slf.course,
+				UniqueSign:  fmt.Sprintf("ELECTIVE-%s-%d", slf.course, index),
+				Class:       slf.course,
 				Course:      slf.course,
 				Teacher:     slf.teachers,
 				TeacherMode: slf.teacherMode,
@@ -73,11 +76,13 @@ func (slf *ElectiveClassModifier) ToFactor() []wtype.Factor {
 				f.Group = group
 			}
 			arr = append(arr, f)
+			index++
 		}
 	}
 	for _, fixed := range slf.fixed {
 		arr = append(arr, &wtype.FactorInfo{
-			UniqueSign:  slf.course,
+			UniqueSign:  fmt.Sprintf("ELECTIVE-FIXED-%s-%d", slf.course, index),
+			Class:       slf.course,
 			Course:      slf.course,
 			Teacher:     slf.teachers,
 			TeacherMode: slf.teacherMode,
@@ -90,6 +95,7 @@ func (slf *ElectiveClassModifier) ToFactor() []wtype.Factor {
 			Priority:    slf.priority,
 			Slot:        slf.slot,
 		})
+		index++
 	}
 	return arr
 }

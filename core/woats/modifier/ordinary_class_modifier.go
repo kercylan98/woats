@@ -1,6 +1,7 @@
 package modifier
 
 import (
+	"fmt"
 	"github.com/kercylan98/exception"
 	"github.com/kercylan98/woats/core/woats/define"
 	"github.com/kercylan98/woats/core/woats/utils"
@@ -56,12 +57,14 @@ type OrdinaryClassModifierCourse struct {
 
 func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 	var arr []wtype.Factor
+	var index = 1
 	for _, course := range slf.course {
 		for _, section := range course.section {
 			var group wtype.FactorGroup
 			for i := 0; i < section; i++ {
 				f := &wtype.FactorInfo{
-					UniqueSign:  slf.class,
+					UniqueSign:  fmt.Sprintf("ORDINARY-%s-%s-%d", slf.class, course.course, index),
+					Class:       slf.class,
 					Course:      course.course,
 					Teacher:     course.teacher,
 					TeacherMode: course.teacherMode,
@@ -79,11 +82,13 @@ func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 					f.Group = group
 				}
 				arr = append(arr, f)
+				index++
 			}
 		}
 		for _, fixed := range course.fixed {
 			arr = append(arr, &wtype.FactorInfo{
-				UniqueSign:  slf.class,
+				UniqueSign:  fmt.Sprintf("ORDINARY-FIXED-%s-%s-%d", slf.class, course.course, index),
+				Class:       slf.class,
 				Course:      course.course,
 				Teacher:     course.teacher,
 				TeacherMode: course.teacherMode,
@@ -96,6 +101,7 @@ func (slf *OrdinaryClassModifier) ToFactor() []wtype.Factor {
 				Priority:    course.priority,
 				Slot:        slf.slot,
 			})
+			index++
 		}
 	}
 	return arr

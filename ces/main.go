@@ -24,7 +24,7 @@ func (slf *Student) ToLine() []string {
 func main() {
 	var students = map[string]*Student{}
 
-	excel, err := xlsx.OpenFile("/Users/kercylan/Documents/Work/上海市师悦信息科技有限公司/2.客户信息留档/2.华东师范大学附属双语学校/2021-2022年第一学期/学生选课结果/G12 subject selection-2020-2021_20210630.xlsx")
+	excel, err := xlsx.OpenFile("/Users/kercylan/Documents/Work/上海市师悦信息科技有限公司/2.客户信息留档/2.华东师范大学附属双语学校/2021-2022年第一学期/学生选课结果/G11 subject selection_2021-2022_20210615.xlsx")
 	if err != nil {
 		panic(err)
 	}

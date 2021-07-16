@@ -91,7 +91,7 @@ func (slf *Woats) handleNormal(factors wtype.FactorGroup, studio *Studio) {
 	g := fg.GetAllGroupFactor()
 	studio.addFactorGroup(append(g, ng...))
 	studio.Run(func(factor wtype.Factor, studio *Studio) exception.Exception {
-		var se exception.Exception
+		var se exception.Exception = nil
 		for _, strategy := range slf.strategy {
 			// 初始化阶段
 			slf.strategyInitLock[strategy].Do(func() {
@@ -106,9 +106,8 @@ func (slf *Woats) handleNormal(factors wtype.FactorGroup, studio *Studio) {
 			}
 			if err != nil {
 				se = err
-				continue
 			} else {
-				return nil
+				break
 			}
 		}
 

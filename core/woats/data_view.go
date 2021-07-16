@@ -134,7 +134,7 @@ func (slf *DataView) CreateAllViewExcel(path string) error {
 		for _, timeSlot := range ss {
 			var fContent string
 			for _, factor := range slf.matrix[class][timeSlot.Index] {
-				fContent += fmt.Sprintf("%s, %s, %s\r\n", factor.GetUniqueSign(), factor.GetCourse(), factor.GetTeacher())
+				fContent += fmt.Sprintf("%s, %s, %s\r\n", factor.GetClass(), factor.GetCourse(), factor.GetTeacher())
 			}
 			content[timeSlot.Index] = content[timeSlot.Index] + fContent
 		}

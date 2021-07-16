@@ -60,21 +60,21 @@ func (slf *Test) Modification(modifier *woats.ModifierFactory) exception.Excepti
 	modifier.OrdinaryClass("小学一年级1班", 1, 1, tss).
 		AddLeader("李鸣宇").
 		AddStudent("小红", "小明", "小狼").Ok().
-		AddCourse("语文", "李玉涛").
-		Section(2, 1, 1, 1, 3).
+		//AddCourse("语文", "李玉涛").
+		//Section(1, 1).
 		//AddFixed(5, 2, 3, 28).
-		SetDisable(9).Ok().
-		AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
-		AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+		//SetDisable(9).Ok().
+		AddCourse("数学", "张华").Section(1).Ok().
+		AddCourse("英语", "刘雨依").Section(1).Ok()
+	//AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
 
-	modifier.OrdinaryClass("小学一年级2班", 1, 1, tss).
-		AddLeader("李鸣宇").
-		AddStudent("小王", "小学生", "小东西").Ok().
-		//AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(4).SetDisable(9).Ok().
-		AddCourse("数学", "张华").Section(1, 1, 1, 2).Ok().
-		AddCourse("英语", "刘雨依").Section(1, 1, 1, 1, 1, 1, 1).Ok().
-		AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
+	//modifier.OrdinaryClass("小学一年级2班", 1, 1, tss).
+	//	AddLeader("李鸣宇").
+	//	AddStudent("小王", "小学生", "小东西").Ok().
+	//	//AddCourse("语文", "李玉涛").Section(1, 1, 1, 2).AddFixed(4).SetDisable(9).Ok().
+	//	AddCourse("数学", "张华").Section(1, 1).Ok().
+	//	AddCourse("英语", "刘雨依").Section(1, 1).Ok()
+	//AddCourse("补刀课位").Section(1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1).Ok()
 
 	//modifier.OrdinaryClass("小学二年级1班", 1, 2, tss).
 	//	AddLeader("张涛").

@@ -13,7 +13,7 @@ type FactorGroup []Factor
 func (slf *FactorGroup) IsContainFactor(factorGroup FactorGroup) bool {
 	for _, factor := range *slf {
 		for _, f := range factorGroup {
-			if factor == f {
+			if factor.GetUniqueSign() == f.GetUniqueSign() {
 				return true
 			}
 		}
@@ -27,7 +27,7 @@ func (slf *FactorGroup) RemoveFactor(factor ...Factor) FactorGroup {
 	for _, f := range *slf {
 		match := false
 		for _, w := range factor {
-			if f == w {
+			if f.GetUniqueSign() == w.GetUniqueSign() {
 				match = true
 				break
 			}
@@ -45,7 +45,7 @@ func (slf *FactorGroup) Unrepeated() (newArr FactorGroup) {
 	for i := 0; i < len(*slf); i++ {
 		repeat := false
 		for j := i + 1; j < len(*slf); j++ {
-			if (*slf)[i] == (*slf)[j] {
+			if (*slf)[i].GetUniqueSign() == (*slf)[j].GetUniqueSign() {
 				repeat = true
 				break
 			}

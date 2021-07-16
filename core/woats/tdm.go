@@ -16,14 +16,14 @@ func newTDM(factors wtype.FactorGroup) ThreeDimensionalMatrix {
 	var tdm ThreeDimensionalMatrix = map[string]map[int]wtype.FactorGroup{}
 
 	for _, factor := range factors {
-		slots, exist := tdm[factor.GetUniqueSign()]
+		slots, exist := tdm[factor.GetClass()]
 		if !exist {
 			slots = map[int]wtype.FactorGroup{}
 		}
 		for _, slot := range factor.GetSlot() {
 			slots[slot.Index] = []wtype.Factor{}
 		}
-		tdm[factor.GetUniqueSign()] = slots
+		tdm[factor.GetClass()] = slots
 	}
 	return tdm
 }
@@ -31,7 +31,7 @@ func newTDM(factors wtype.FactorGroup) ThreeDimensionalMatrix {
 // GetPlaceSlotWithCourse 根据课程获取特定因子同班级下已放置的课位
 func (slf ThreeDimensionalMatrix) GetPlaceSlotWithCourse(factor wtype.Factor) []*wtype.TimeSlot {
 	var slots []*wtype.TimeSlot
-	for slot, fg := range slf[factor.GetUniqueSign()] {
+	for slot, fg := range slf[factor.GetClass()] {
 		for _, f := range fg {
 			if f.GetCourse() == factor.GetCourse() {
 				slots = append(slots, factor.GetSlotWithIndex(slot))
@@ -45,7 +45,7 @@ func (slf ThreeDimensionalMatrix) GetPlaceSlotWithCourse(factor wtype.Factor) []
 // GetPlaceSlotWithTeacher 根据教师获取特定因子同班级下已放置的课位(即便只有一名教师满足)
 func (slf ThreeDimensionalMatrix) GetPlaceSlotWithTeacher(factor wtype.Factor) []*wtype.TimeSlot {
 	var slots []*wtype.TimeSlot
-	for slot, fg := range slf[factor.GetUniqueSign()] {
+	for slot, fg := range slf[factor.GetClass()] {
 		for _, f := range fg {
 			found := false
 			for _, s := range f.GetTeacher() {
@@ -94,10 +94,10 @@ func (slf ThreeDimensionalMatrix) GetAllSlot() []*wtype.TimeSlot {
 	var result = make([]*wtype.TimeSlot, 0)
 	var existed = map[string]bool{}
 	for _, factor := range slf.GetAllFactor() {
-		if _, exist := existed[factor.GetUniqueSign()]; exist {
+		if _, exist := existed[factor.GetClass()]; exist {
 			continue
 		}
-		existed[factor.GetUniqueSign()] = true
+		existed[factor.GetClass()] = true
 		result = append(result, factor.GetSlot()...)
 	}
 	return result
@@ -109,14 +109,14 @@ func (slf ThreeDimensionalMatrix) GetSlotExcludeClass(class ...string) []*wtype.
 	var existed = map[string]bool{}
 	for _, factor := range slf.GetAllFactor() {
 		for _, s := range class {
-			if factor.GetUniqueSign() == s {
+			if factor.GetClass() == s {
 				continue
 			}
 		}
-		if _, exist := existed[factor.GetUniqueSign()]; exist {
+		if _, exist := existed[factor.GetClass()]; exist {
 			continue
 		}
-		existed[factor.GetUniqueSign()] = true
+		existed[factor.GetClass()] = true
 		for _, slot := range factor.GetSlot() {
 			result = append(result, &wtype.FactorTimeSlot{
 				Factor: factor,
@@ -136,7 +136,7 @@ func (slf ThreeDimensionalMatrix) GetSlots(class string) map[int]wtype.FactorGro
 func (slf ThreeDimensionalMatrix) GetTimeSlots(class string) []*wtype.TimeSlot {
 	for _, group := range slf[class] {
 		for _, factor := range group {
-			if factor.GetUniqueSign() == class {
+			if factor.GetClass() == class {
 				return factor.GetSlot()
 			}
 		}
@@ -223,7 +223,7 @@ func (slf ThreeDimensionalMatrix) GetConflictFactor(factor wtype.Factor, slot in
 
 // FactorIsExistTo 检查特定因子是否存在特定课位上
 func (slf ThreeDimensionalMatrix) FactorIsExistTo(factor wtype.Factor, slot int) bool {
-	for _, f := range slf[factor.GetUniqueSign()][slot] {
+	for _, f := range slf[factor.GetClass()][slot] {
 		if f.GetCourse() == factor.GetCourse() {
 			return true
 		}
@@ -248,29 +248,29 @@ func (slf ThreeDimensionalMatrix) IsConflictErr(factor wtype.Factor, slot int) e
 		// 检查该课位是否禁排
 		if utils.IsContainInt(factor.GetDisable(), slot) {
 			return define.DisableSlotException.Hit().
-				Supplement("class", factor.GetUniqueSign()).
+				Supplement("class", factor.GetClass()).
 				Supplement("course", factor.GetCourse()).
 				Supplement("teacher", factor.GetTeacher())
 		}
 		// 检查该课位是否存在该课程
-		for _, f := range slf.GetFactors(factor.GetUniqueSign(), slot) {
+		for _, f := range slf.GetFactors(factor.GetClass(), slot) {
 			if f.GetCourse() == factor.GetCourse() {
 				return define.CourseConflictException.Hit().
-					Supplement("class", factor.GetUniqueSign()).
+					Supplement("class", factor.GetClass()).
 					Supplement("course", factor.GetCourse()).
 					Supplement("teacher", factor.GetTeacher())
 			}
 		}
 
-		for _, timeSlot := range slf.GetSlotExcludeClass(factor.GetUniqueSign()) {
+		for _, timeSlot := range slf.GetSlotExcludeClass(factor.GetClass()) {
 			// 满足时间交叉时候进行冲突检查
 			if slfSlot.IsCrossed(timeSlot.Slot) {
 				// 教师冲突
 				for _, t := range factor.GetTeacher() {
-					for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
+					for _, f := range slf[timeSlot.Factor.GetClass()][slot] {
 						if utils.IsContainString(f.GetTeacher(), t) {
 							return define.TeacherConflictException.Hit().
-								Supplement("class", factor.GetUniqueSign()).
+								Supplement("class", factor.GetClass()).
 								Supplement("course", factor.GetCourse()).
 								Supplement("teacher", t)
 						}
@@ -278,23 +278,23 @@ func (slf ThreeDimensionalMatrix) IsConflictErr(factor wtype.Factor, slot int) e
 				}
 				// 学生冲突
 				for _, s := range factor.GetStudent() {
-					for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
+					for _, f := range slf[timeSlot.Factor.GetClass()][slot] {
 						if utils.IsContainString(f.GetStudentUniqueSign(), s.UniqueSign) {
 							return define.StudentConflictException.Hit().
-								Supplement("class", factor.GetUniqueSign()).
+								Supplement("class", factor.GetClass()).
 								Supplement("course", factor.GetCourse()).
 								Supplement("teacher", factor.GetTeacher()).
 								Supplement("student", s).
-								Supplement("He is in where", f.GetUniqueSign())
+								Supplement("He is in where", f.GetClass())
 						}
 					}
 				}
 				// 场地冲突
 				for _, p := range factor.GetPlace() {
-					for _, f := range slf[timeSlot.Factor.GetUniqueSign()][slot] {
+					for _, f := range slf[timeSlot.Factor.GetClass()][slot] {
 						if utils.IsContainString(f.GetPlaceUniqueSign(), p.UniqueSign) {
 							return define.PlaceConflictException.Hit().
-								Supplement("class", factor.GetUniqueSign()).
+								Supplement("class", factor.GetClass()).
 								Supplement("course", factor.GetCourse()).
 								Supplement("teacher", factor.GetTeacher()).
 								Supplement("place", factor.GetPlace())
@@ -321,7 +321,7 @@ func (slf ThreeDimensionalMatrix) IsConflictErr(factor wtype.Factor, slot int) e
 		} else {
 			return define.GroupConflictException.Hit().
 				Supplement("err", fmt.Sprintf("out of schedule size, min and max is: %d ~ %d", min, max)).
-				Supplement("class", factor.GetUniqueSign()).
+				Supplement("class", factor.GetClass()).
 				Supplement("course", factor.GetCourse()).
 				Supplement("teacher", factor.GetTeacher())
 		}
